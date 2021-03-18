@@ -35,23 +35,23 @@ app.whenReady().then(createWindow)
 
 
 ipcMain.on("toMain", (event, args) => {
-    fs.writeFile("myfile.txt2", args, (err) => {
-        if (err) {
-            //alert("An error ocurred updating the file" + err.message);
-            console.log(err);
-        }
-    });
+    //fs.writeFile("myfile2.txt", args, (err) => {
+    //    if (err) {
+    //        //alert("An error ocurred updating the file" + err.message);
+    //        console.log(err);
+    //    }
+    //});
     //alert("The file has been succesfully saved");
-    fs.readFile("myfile.txt", (error, data) => {
+    fs.readFile("myfile2.txt", 'utf8',(error, data) => {
     // Do something with file contents
     //for (let i=0;i<3;++i) data[i]+=data[i];
     // Send result back to renderer process
 
 
 
-      var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+      //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
 
-      win.webContents.send("fromMain", args);
+      win.webContents.send("fromMain", data);
 
 
   });

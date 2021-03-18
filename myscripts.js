@@ -1,15 +1,60 @@
+window.api.receive("fromMain", (data) => {
+    loadTables(data);
+});
+
 function testFunction(){
 
     //document.getElementById('blocker').style.display='block';
 
 
 
-    window.api.send("toMain", readTable());
+    window.api.send("toMain", saveTables());
 
 
 }
 
-function readTable(){
+function loadTables(text){
+    let arrText = text.split('\n');
+    var index=0;
+    var stations = [];
+    var element= document.getElementById('stationTable');
+    var arrHelper
+    while (arrText[index] !== 'end') {
+        for (let i = 0; i < 5; i++) {
+
+
+
+        }
+    }
+    textToSave+='end\n';
+    element= document.getElementById('vertexTable');
+    for (let i=1;i<element.rows.length;i++){
+        for (let j=1;j<3;j++){
+            textToSave+= element.rows[i].cells[j].innerHTML+'\n';
+
+        }
+    }
+    textToSave+='end\n';
+    element= document.getElementById('circleOfInterest');
+    for (let i=2;i<element.rows.length;i++){
+        for (let j=0;j<3;j++){
+            textToSave+= element.rows[i].cells[j].innerHTML+'\n';
+
+        }
+    }
+    textToSave+='end\n';
+
+    var listOfAddationalParametersId = ["latitudeResolutionInput","longitudeResolutionInput","altitudeInput",'selectStationList',"polygonCheckBox"]
+    for (let i=0;i<listOfAddationalParametersId.length;i++){
+        element= document.getElementById(listOfAddationalParametersId[i]);
+        if (i==4) textToSave+= element.checked+'\n';
+        else textToSave+= element.value+'\n';
+    }
+    textToSave+='end\n';
+    return textToSave;
+}
+
+function saveTables(){
     var textToSave ='';
     var element= document.getElementById('stationTable');
     for (let i=1;i<element.rows.length;i++){
