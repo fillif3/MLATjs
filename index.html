@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script  type='text/javascript' src="jquery-1.4.3.min.js"></script>
+    <script type='text/javascript'
+            src='http://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AnZkuesgU6PcC_kMP-WGAVGtBJiFPd-brWkgdVHemDv5DSFwg8zsQbuFwxBbIbtH'
+            async defer>
+
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.0/math.js" integrity="sha512-+KihqiIrhYt4/tFb42KiOJ+wr0PM6dVMw9twO1Ju+sZ0OdgurvE/9dy2jAS0Fr0MCVryF2EXxPH9HRXg6CaFgg==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="mystyle.css">
+    <script type='text/javascript' src="myscripts.js"></script>
+    <script type='text/javascript' src="mapBing.js"></script>
+    <script type='text/javascript' src="colorGradient.js"></script>
+
+    <script src=
+                    "https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js">
+    </script>
+
+</head>
+<body >
+    <button id="stopButton" type="button" onclick="stopComputation('lat_long_alt')" >STOP</button>
+
+    <div id="myPanel" >
+        <div id="hideButton" >
+            <button type="button" onclick="toggle('controls',this)" class="hideButton">Panel - hide</button>
+        </div>
+        <div id="controls" >
+            <div>
+                <button type="button" onclick="toggle('stationsDiv',this)" class="hideButton">Stations information - show</button>
+            </div>
+            <div id="stationsDiv" class='hidden'>
+                <table id = "stationTable" class = 'fl-table'>
+                    <tbody>
+                      <tr>
+                        <td class="information" onclick="alert('Station order number')">Nr</td>
+                        <td class="information" onclick='alert("Current latitude of station.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Latitude</td>
+                        <td class="information" onclick='alert("Current longitude of station.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Longitude</td>
+                        <td class="information" onclick='alert("Current altitude of station.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Altitude (meters)</td>
+
+                          <td  class="information" onclick='alert("Name of station.\nIt can be edited. To refresh label on the map: click \"Edit button\"")'>Name</td>
+                          <td class="information" onclick='alert("Deactivated station is not used during calculating measurement error")'>Active</td>
+                        <td class="information" onclick='alert("Refresh position of station on the map based on info typed by user")'>Edit button</td>
+                          <td class="information" onclick='alert("Delete station from map and table")'>Delete button</td>
+                      </tr>
+                    </tbody>
+                </table>
+
+                <div>
+                    <div>
+                        <button type="button" onclick="addEventToMap('Station')" class="buttonSkip">Add station by clicking</button>
+                    </div>
+                    <div>
+                        <button type="button"  onclick="showMassageWindow('lat_long_alt','Station')"  class="buttonSkip">Add station by typing location</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id = "polygonOfInterestHideButton">
+                <button   type="button" id="polygonShowingTableButton" onclick="toggle('polygonOfInterestDiv',this)" class="hideButton">Polygon information - show</button>
+            </div>
+            <div class='hidden' id ="polygonOfInterestDiv">
+                <table id = "vertexTable" class = 'fl-table'>
+                    <tbody>
+                      <tr>
+                        <td class="information" onclick="alert('Vertex order number')">Nr</td>
+                        <td class="information" onclick='alert("Current latitude of vertex.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Latitude</td>
+                        <td class="information" onclick='alert("Current longitude of vertex.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Longitude</td>
+                        <td class="information" onclick='alert("Refresh position of vertex on the map based on info typed by user")'>Edit button</td>
+                          <td  class="information" onclick='alert("Delete vertex from map and table")'>Delete button</td>
+                      </tr>
+                    </tbody>
+                </table>
+                <div>
+                    <div>
+                        <button type="button"  onclick="addEventToMap('Vertex')" class="buttonSkip">Add vertex by clicking</button>
+                    </div>
+                    <div>
+                        <button type="button"  onclick="showMassageWindow('lat_long','Vertex')" class="buttonSkip">Add vertex by typing location</button>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <div id ="circleOfInterestHideDiv">
+                <button type="button" id="circleShowingTableButton" onclick="toggle('circleOfInterestDiv',this)" class="hideButton">Circle of interest - show</button>
+            </div>
+            <div class='hidden' id ="circleOfInterestDiv">
+                <table  class = 'fl-table' id = "circleOfInterest">
+
+                    <tbody>
+                    <tr>
+                        <th colspan="2">Center<br></th><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td class="information" onclick='alert("Current latitude of center of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Latitude</td>
+                        <td class="information" onclick='alert("Current longitude of center of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Longitude</td>
+                        <td class="information" onclick='alert("Current radius of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>radius (in meters)</td>
+                        <td class="information" onclick='alert("Refresh circle on the map based on info typed by user")'>Edit button</td>
+                        <td  class="information" onclick='alert("Delete circle from map and table")'>Delete button</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div>
+                    <button type="button" class="buttonSkip fullWidth" onclick="addEventToMap('Circle')">
+                        select the coordinates of the center of the circle of the place of interest
+
+                    </button>
+                </div>
+            </div>
+            <br>
+            <!--
+            <div>
+                <button type="button" class="fullWidthButton">Center map</button>
+            </div>
+            <div>
+                <div class="halfWidthDivLeft">
+                    <label >Latitude:</label>
+                    <input type="text"  maxlength="10" size="10">
+                </div>
+                <div class="halfWidthDivLeft">
+                    <label >Longitude:</label>
+                    <input type="text"  maxlength="10" size="10">
+                </div>
+            </div>
+            -->
+            <div>
+                <button type="button" onclick="toggle('addationalParametersDiv',this)" class="hideButton">Addational parameters - show</button>
+            </div>
+            <div class = "hidden" id="addationalParametersDiv">
+                <div class = "fullWidth">
+                    <div class="halfWidthDivLeft">
+                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating VDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Latitude resolution:</label>
+                        <input class="halfWidthDivLeft fullHeight" id = "latitudeResolutionInput"type="text" value="100" maxlength="10" size="10">
+                    </div>
+                    <div class="halfWidthDivLeft">
+                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating VDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Longitude resolution:</label>
+                        <input class="halfWidthDivLeft fullHeight" id = "longitudeResolutionInput"type="text"  value="100" maxlength="10" size="10">
+                    </div>
+                    <div style="clear:both;"></div>
+
+                </div>
+                <div class = "fullWidth">
+                    <div class="halfWidthDivLeft">
+                        <label class="information" onclick="alert('The altitude of plane. It affects measurment error.')" class="halfWidthDivLeft fullHeight information">Altitude (meters):</label>
+                        <input class="halfWidthDivLeft fullHeight" id = "altitudeInput"type="text"  value="1000" maxlength="10" size="10">
+                    </div>
+                    <div  class="halfWidthDivLeft">
+                        <label onclick="alert('Localization algorithm requires selecting base station. It affects measurnment error.\nYou can select station or choose best staion as base station. In this case, measurment error will be computed in the respect to each station and lowest value will be displayed')" class="fullWidth information" >Select base station:</label>
+                        <select class="fullWidth" id="selectStationList"  maxlength="10" >
+                        <option value=0>Best station</option>
+                        </select>
+                    </div>
+                    <div style="clear:both;"></div>
+
+                </div>
+                <div class = "fullWidth">
+                    <div class="halfWidthDivLeft">
+                        <label onclick="alert('If yes, you can define each vertex of the surveillancd polygon. Otherwise, it is circle  ')" class="fullWidth information" >Complex polygon</label>
+                        <input type="checkbox" value=false onclick="togglePolygon(this)" id="polygonCheckBox" >
+                    </div>
+                    <div style="clear:both;"></div>
+
+                </div>
+            </div>
+            <div id="calculateButton">
+                <button type="button" onclick="calculateVDOP()" class="buttonSkip fullWidth notMargin">Calculate VDOP</button>
+            </div>
+            <div id="testbutton">
+                <button type="button" onclick="testFunction()" class="buttonSkip fullWidth notMargin">Test</button>
+            </div>
+        </div>
+
+
+    </div>
+    <div id="myProgress" class="hidden" ><!-- class="hidden"-->
+        <div id="myBar"></div>
+    </div>
+    <div id="logo" >
+        <div>
+         <img src="aerobits.png">
+        </div>
+     </div>
+     <div id="myMap" ></div>
+     <div id = "PanelVDOP">
+         <div>
+             <label >Station measurment error (ns):</label>
+             <input id = "stationMeasurmentErrorInput" onchange="getLocalizationMeasurmentError()" type="text"  maxlength="10" size="10">
+             <label >VDOP:</label>
+             <input id = "VDOPInput" readonly type="text" onchange="getLocalizationMeasurmentError()" maxlength="10" size="10">
+             <label >Localization measurment error (m):</label>
+             <input id = "localizationMeasurmentErrorInput" readonly type="text"  maxlength="10" size="10">
+         </div>
+         <div id="gradientDiv">
+             <div class="DivLeft">
+                Colors:
+             </div>
+
+         </div>
+     </div>
+
+     <div id="popUp" >
+         <div class="bigCenteredText">
+             Select parameters
+         </div>
+         <div>
+             <div  class="DivLeft"id = "latInputPopUpDiv">
+                 <label >Latitude:</label>
+                 <input type="number" step="0.01" min="-90" max="90" id = "latInputPopUp" maxlength="10" size="10">
+             </div>
+             <div class="DivLeft"id = "longInputPopUpDiv" >
+                 <label >Longitude:</label>
+                 <input type="number" step="0.01" min="-180" max="180" id = "longInputPopUp" maxlength="10" size="10">
+             </div>
+             <div class="DivLeft" id = "altInputPopUpDiv" >
+                 <label >Altitude:</label>
+                 <input type="number" step="0.01" min="0" id = "altInputPopUp"  maxlength="10" size="10">
+             </div>
+         </div>
+         <div>
+             <div id = "addVertexButton" class="DivRight">
+                 <button type="button" onclick="addNewVertex()">Add Vertex</button>
+             </div>
+                 <div id = "addStationButton" class="DivRight">
+                 <button type="button" onclick="addNewStation()">Add Station</button>
+             </div>
+             <div class="DivRight">
+                 <button type="button" onclick="hideMassageWindow('lat_long_alt')" >Cancel</button>
+             </div>
+
+
+         </div>
+     </div>
+
+    <div id="blocker">
+    </div>
+    <script>
+        window.api.receive("fromMain", (data) => {
+            console.log(data);
+        });
+
+    </script>
+
+
+ </body>
+ </html>

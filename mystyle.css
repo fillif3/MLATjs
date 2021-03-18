@@ -1,0 +1,329 @@
+#blocker{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: #d00;
+  z-index: 1110;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  display: none;
+}
+
+#stopButton {
+  opacity: 1;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  height: 120px;
+  line-height: 80px;
+  width: 120px;
+  font-size: 2em;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: red;
+  text-align: center;
+  cursor: pointer;
+  z-index: 11100000000000;
+  display: none;
+
+}
+
+#myProgress {
+  position: fixed;
+  width: 40%;
+  background-color: #ddd;
+  z-index: 100000;
+  top: 30%;
+  left: 30%;
+}
+
+.information {
+  cursor: pointer;
+}
+
+#logo{
+  position: fixed;
+  bottom: 0;
+  //height: 300px;
+  width: 20%;
+  left: 40%;
+  z-index: 100;
+  display: flex;
+
+}
+
+#logo img{
+  max-width: 100%;
+
+}
+
+#myBar {
+  width: 1%;
+  height: 30px;
+  background-color: #4CAF50;
+}
+
+#myPanel {
+  position:fixed;
+  width:20%;
+  min-width:200px;
+  //height:100%;
+  background-color: white;
+  z-index: 100;
+  overflow: auto;
+  max-height: 100vh;
+}
+
+#myMap {
+  position:relative;
+
+}
+
+.hidden {
+  display: none;
+}
+
+
+#PanelVDOP {
+  background-color: white;
+  min-width: 30%;
+  min-height: 50px;
+  border: 2px solid black;
+  position: fixed;
+  top: 0;
+  right:  20%;
+  z-index: 10000;
+  display: none;
+}
+
+
+#calculateButton{
+  //position: absolute;
+  width: 100%;
+  //bottom: 0;
+}
+
+#popUp{
+  position: absolute;
+  display: none;
+  min-width: 100px; /* Need a specific value to work */
+  background-color: white;
+  min-height: 100px;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+
+}
+
+
+.fullWidthButton {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: #4CAF50;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.halfWidthButton {
+  float: left;
+  display: block;
+  width: 45%;
+  border: none;
+  background-color: #4CAF50;
+  padding: 14px 28px;
+  margin: 2px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.fullWidthButtonBlue  {
+  display: block;
+  width: 100%;
+  border: none;
+  background-color: Blue;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.halfWidthButtonBlue {
+  float: left;
+  display: block;
+  width: 45%;
+  border: none;
+  background-color:blue;
+  padding: 14px 28px;
+  margin: 2px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.fullHeight{
+  height: 100%;
+}
+
+.halfWidthDivLeft {
+  width: 50%;
+  float: left;
+}
+
+.DivLeft {
+  float: left;
+}
+.DivRight {
+  float: right;
+}
+
+.bigCenteredText{
+  font-size: large;
+  text-align: center;
+}
+
+table{
+  text-align: center;
+  border: 3px solid black;
+  width: 100%;
+
+}
+
+.buttonSkip {
+  float: left;
+  display: block;
+  width: 46%;
+  margin-left: 2%;
+  margin-right: 2%;
+  cursor: pointer;
+  text-align: center;
+  background-color: #8c9cbf;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #8c9cbf), color-stop(50%, #546a9e), color-stop(50%, #36518f), color-stop(100%, #3d5691));
+  background-image: -webkit-linear-gradient(top, #8c9cbf 0%, #546a9e 50%, #36518f 50%, #3d5691 100%);
+  background-image: -moz-linear-gradient(top, #8c9cbf 0%, #546a9e 50%, #36518f 50%, #3d5691 100%);
+  background-image: -ms-linear-gradient(top, #8c9cbf 0%, #546a9e 50%, #36518f 50%, #3d5691 100%);
+  background-image: -o-linear-gradient(top, #8c9cbf 0%, #546a9e 50%, #36518f 50%, #3d5691 100%);
+  background-image: linear-gradient(top, #8c9cbf 0%, #546a9e 50%, #36518f 50%, #3d5691 100%);
+  border: 1px solid #172d6e;
+  border-bottom: 1px solid #0e1d45;
+  border-radius: 5px;
+  -webkit-box-shadow: inset 0 1px 0 0 #b1b9cb;
+  box-shadow: inset 0 1px 0 0 #b1b9cb;
+  color: #fff;
+  font: bold 16px/1 "helvetica neue", helvetica, arial, sans-serif;
+  padding: 7px 0 8px 0;
+  text-decoration: none;
+  text-shadow: 0 -1px 1px #000f4d;}
+.buttonSkip:hover {
+  background-color: #7f8dad;
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #7f8dad), color-stop(50%, #4a5e8c), color-stop(50%, #2f477d), color-stop(100%, #364c80));
+  background-image: -webkit-linear-gradient(top, #7f8dad 0%, #4a5e8c 50%, #2f477d 50%, #364c80 100%);
+  background-image: -moz-linear-gradient(top, #7f8dad 0%, #4a5e8c 50%, #2f477d 50%, #364c80 100%);
+  background-image: -ms-linear-gradient(top, #7f8dad 0%, #4a5e8c 50%, #2f477d 50%, #364c80 100%);
+  background-image: -o-linear-gradient(top, #7f8dad 0%, #4a5e8c 50%, #2f477d 50%, #364c80 100%);
+  background-image: linear-gradient(top, #7f8dad 0%, #4a5e8c 50%, #2f477d 50%, #364c80 100%);
+  cursor: pointer; }
+.buttonSkip:active {
+  -webkit-box-shadow: inset 0 0 20px 0 #1d2845, 0 1px 0 white;
+  box-shadow: inset 0 0 20px 0 #1d2845, 0 1px 0 white; }
+
+.fullWidth{
+  width: 96%;
+}
+
+.hideButton {
+  cursor: pointer;
+  width: 100%;
+  border-radius: 5px;
+  text-decoration: none;
+  padding: 10px;
+  font-size: 22px;
+  transition: .3s;
+  -webkit-transition: .3s;
+  -moz-transition: .3s;
+  -o-transition: .3s;
+  display: inline-block;
+  color: #fff;
+  background-color: #2ecc71;
+  border: 2px white solid;
+
+}
+
+.hideButton:hover {
+  cursor: pointer;
+  color: #2ecc71;
+  border: 2px #2ecc71 solid;
+  background-color: #fff;
+}
+
+
+.fl-table {
+  display: block;
+  width: 100%;
+}
+.table-wrapper:before{
+  content: "Scroll horizontally >";
+  display: block;
+  text-align: right;
+  font-size: 11px;
+  color: white;
+  padding: 0 0 10px;
+}
+.fl-table thead, .fl-table tbody, .fl-table thead th {
+  display: block;
+}
+.fl-table thead th:last-child{
+  border-bottom: none;
+}
+.fl-table thead {
+  float: left;
+}
+.fl-table tbody {
+  width: auto;
+  position: relative;
+  overflow-x: auto;
+}
+.fl-table td, .fl-table th {
+  padding: 20px .625em .625em .625em;
+  height: 60px;
+  vertical-align: middle;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 120px;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+.fl-table thead th {
+  text-align: left;
+  border-bottom: 1px solid #f7f7f9;
+}
+.fl-table tbody tr {
+  display: table-cell;
+}
+.fl-table tbody tr:nth-child(odd) {
+  background: none;
+}
+.fl-table tr:nth-child(even) {
+  background: transparent;
+}
+.fl-table tr td:nth-child(odd) {
+  background: #F8F8F8;
+  border-right: 1px solid #E6E4E4;
+}
+.fl-table tr td:nth-child(even) {
+  border-right: 1px solid #E6E4E4;
+}
+.fl-table tbody td {
+  display: block;
+  text-align: center;
+}
+
+.notMargin{
+  margin: 0;
+  width: 100%;
+}

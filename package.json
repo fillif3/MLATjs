@@ -1,0 +1,18 @@
+{
+  "_comment1": "electron-packager <sourcedir> <appname> --platform=<platform> --arch=<arch> [optional flags...]",
+  "name": "my-electron-app",
+  "version": "0.1.0",
+  "author": "your name",
+  "description": "My Electron app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "electron": "^12.0.1"
+  },
+  "dependencies": {
+    "electron-packager": "^15.2.0"
+  }
+}
