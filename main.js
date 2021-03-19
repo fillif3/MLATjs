@@ -8,7 +8,6 @@ function createWindow () {
     win = new BrowserWindow({
     width: 1200,
     height: 800,
-        fullscreen:true,
     title: "Localization measurnment error - accuracy",
     webPreferences: {
       nodeIntegration: true,
@@ -18,6 +17,8 @@ function createWindow () {
 
 
   })
+
+    win.maximize();
 
   win.webContents.openDevTools()
 
@@ -38,13 +39,15 @@ ipcMain.on("toMain", (event, args) => {
 
     //alert("The file has been succesfully saved");
     if (args[0]=='load') {
-        fs.readFile(args[1], 'utf8', (error, data) => {
+        fs.readFile(args[1], 'utf8', (err, data) => {
             // Do something with file contents
             //for (let i=0;i<3;++i) data[i]+=data[i];
             // Send result back to renderer process
-            console.log('tutaj');
+            if (err!=null) {
+                win.webContents.send("fromMain", ['error']);
+                return null;
 
-
+            }
             //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
 
             win.webContents.send("fromMain", ['load',data]);
@@ -52,16 +55,26 @@ ipcMain.on("toMain", (event, args) => {
 
         });
     } else if (args[0]=='save'){
+        console.log(args[1],args[2])
         fs.writeFile(args[1],args[2], (err) => {
-           if (err) {
+            console.log('save')
+           if (err!=null) {
+               console.log('saveerr')
                 //alert("An error ocurred updating the file" + err.message);
-                console.log(err);
-            }
+               win.webContents.send("fromMain", ['error']);
+               return null;
+
+           }
+            console.log('save')
         });
        // alert("The file has been succesfully saved");
 
     } else if (args[0]=='check'){
         fs.readdir('saves/', (err, files) => {
+            if (err!=null){
+                win.webContents.send("fromMain", ['error']);
+                return null;
+            }
             win.webContents.send("fromMain", ['check',files]);
         });
         // alert("The file has been succesfully saved");
@@ -71,7 +84,7 @@ ipcMain.on("toMain", (event, args) => {
             fs.unlinkSync(args[1])
             //file removed
         } catch(err) {
-            console.error(err)
+            win.webContents.send("fromMain", ['error']);
         }
     }
 

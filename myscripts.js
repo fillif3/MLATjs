@@ -2,6 +2,7 @@ window.api.receive("fromMain", (data) => {
     console.log('tutaj')
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='check') addSavesToList(data[1]);
+    else if (data[0]=='error') alert('the operation failed')
 });
 
 function addSavesToList(saves){
@@ -42,7 +43,7 @@ function loadFunction(){
         //document.getElementById('blocker').style.display='block';
         var list = document.getElementById("selectSaveList");
         let path = 'saves/' + list.value + '.txt'
-        restartMap();
+
         window.api.send("toMain", ['load', path]);
     }
 }
@@ -79,6 +80,7 @@ function restartMap(){
 }
 
 function loadTables(text){
+    restartMap();
     let arrText = text.split('\n');
     var index=0;
     //var element= document.getElementById('stationTable');
@@ -148,7 +150,6 @@ function loadTables(text){
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
     }
     //console.log(circle,'circle');
-    alert('idzie dobrze')
     index++;
     document.getElementById('latitudeResolutionInput').value = arrText[index];
     index++;
@@ -163,7 +164,6 @@ function loadTables(text){
     index++;
     document.getElementById('polygonCheckBox').checked= (arrText[index] == 'true');
     console.log(arrText[index])
-    alert('ewq')
 
     togglePolygon(document.getElementById('polygonCheckBox'));
     index++;
