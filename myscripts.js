@@ -2,56 +2,130 @@ window.api.receive("fromMain", (data) => {
     loadTables(data);
 });
 
-function testFunction(){
+function loadFunction(){
+
+    //document.getElementById('blocker').style.display='block';
+
+
+    restartMap();
+    window.api.send("toMain", ['load']);
+
+
+}
+
+function saveFunction(){
 
     //document.getElementById('blocker').style.display='block';
 
 
 
-    window.api.send("toMain", saveTables());
+    window.api.send("toMain", ['save',saveTables()]);
 
+
+}
+//deleteRowAndUpdateTable(cell,where)
+function restartMap(){
+    let table = document.getElementById('stationTable');
+    while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
+    table = document.getElementById('vertexTable');
+    while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'vertex')
+    table = document.getElementById('circleOfInterest');
+    while(table.rows.length>2) deleteRowAndUpdateTable(table.rows[2].cells[0].firstChild,'circle')
 
 }
 
 function loadTables(text){
     let arrText = text.split('\n');
     var index=0;
-    var stations = [];
-    var element= document.getElementById('stationTable');
-    var arrHelper
+    //var element= document.getElementById('stationTable');
+    var arrHelper;
+    var counter=1;
     while (arrText[index] !== 'end') {
+        arrHelper = [];
         for (let i = 0; i < 5; i++) {
-
-
-
+            arrHelper.push(arrText[index])
+            index++;
         }
-    }
-    textToSave+='end\n';
-    element= document.getElementById('vertexTable');
-    for (let i=1;i<element.rows.length;i++){
-        for (let j=1;j<3;j++){
-            textToSave+= element.rows[i].cells[j].innerHTML+'\n';
-
+        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
+        mapModule.addStation(loc,arrHelper[2],arrHelper[3],changeStationInTable)
+        let table = document.getElementById("stationTable");
+        let content = [counter,arrHelper[0],arrHelper[1],arrHelper[2] ,arrHelper[3]] ;
+        addNewRowToTable("stationTable",newRow,content,
+            '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
+            '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
+        addStationToList();
+        console.log(arrHelper[4])
+        if (arrHelper[4]=='false') {
+            table.rows[counter].cells[5].firstChild.checked = false;
+            changeStateofStation(table.rows[counter].cells[5].firstChild );
         }
-    }
-    textToSave+='end\n';
-    element= document.getElementById('circleOfInterest');
-    for (let i=2;i<element.rows.length;i++){
-        for (let j=0;j<3;j++){
-            textToSave+= element.rows[i].cells[j].innerHTML+'\n';
 
+        counter++;
+
+    }
+
+    //console.log(stations,'stacje');
+
+    index++;
+    counter=1;
+    //var element= document.getElementById('stationTable');
+    while (arrText[index] !== 'end') {
+        arrHelper = [];
+        for (let i = 0; i < 2; i++) {
+            arrHelper.push(arrText[index])
+            index++;
         }
+        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
+        mapModule.addVertex(loc,changeVertexInTable)
+        var table = document.getElementById("vertexTable");
+        var newRow = table.rows.length;
+        var content = [counter,arrHelper[0],arrHelper[1]] ;
+        addNewRowToTable("vertexTable",newRow,content,
+            '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>');
+        counter++;
     }
-    textToSave+='end\n';
 
-    var listOfAddationalParametersId = ["latitudeResolutionInput","longitudeResolutionInput","altitudeInput",'selectStationList',"polygonCheckBox"]
-    for (let i=0;i<listOfAddationalParametersId.length;i++){
-        element= document.getElementById(listOfAddationalParametersId[i]);
-        if (i==4) textToSave+= element.checked+'\n';
-        else textToSave+= element.value+'\n';
+    //console.log(vertexes,'vertex');
+    index++;
+    //var element= document.getElementById('stationTable');
+    while (arrText[index] !== 'end') {
+        arrHelper = [];
+        for (let i = 0; i < 3; i++) {
+            arrHelper.push(arrText[index])
+            index++;
+        }
+        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
+        mapModule.addCircle(loc,arrHelper[2],changeCircleInTable)
+        var content = [arrHelper[0],arrHelper[1],arrHelper[2]] ;
+        addNewRowToTable("circleOfInterest",2,content,
+            '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
     }
-    textToSave+='end\n';
-    return textToSave;
+    //console.log(circle,'circle');
+    alert('idzie dobrze')
+    index++;
+    document.getElementById('latitudeResolutionInput').value = arrText[index];
+    index++;
+    document.getElementById('longitudeResolutionInput').value= arrText[index];
+    index++;
+    document.getElementById('altitudeInput').value= arrText[index];
+    index++;
+    document.getElementById('selectStationList').value= arrText[index];
+
+
+
+    index++;
+    document.getElementById('polygonCheckBox').checked= (arrText[index] == 'true');
+    console.log(arrText[index])
+    alert('ewq')
+
+    togglePolygon(document.getElementById('polygonCheckBox'));
+    index++;
+    mapModule.setCenter(arrText[index+1],arrText[index+2]);
+
+    //console.log(lat_res,lon_res,alt,baseStation,isFigureComplex);
 }
 
 function saveTables(){
@@ -89,6 +163,11 @@ function saveTables(){
         else textToSave+= element.value+'\n';
     }
     textToSave+='end\n';
+
+    var loc = mapModule.getCenter();
+    textToSave+= (loc.latitude.toString().slice(0,7)+'\n')
+    textToSave+= (loc.longitude.toString().slice(0,7))
+
     return textToSave;
 }
 // onload
@@ -298,7 +377,7 @@ function addNewStation(e){
 
 
     }
-    mapModule.addStation(loc,alt,changeStationInTable)
+    mapModule.addStation(loc,alt,'Station',changeStationInTable)
     var table = document.getElementById("stationTable");
     var newRow = table.rows.length;
     var content = [newRow,lat,lon,alt ,"Station"] ;

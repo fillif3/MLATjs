@@ -42,6 +42,16 @@ var mapModule = (function() {
 
     // Setting variables
 
+    function getCenter(){
+        return _MAP_REFERENCE.getCenter();
+    }
+
+    function setCenter(lat,lon){
+        _MAP_REFERENCE.setView({
+            center: new Microsoft.Maps.Location(lat,lon)
+        });
+    }
+
     function stop(){
         _endVDOPComputation=true;
     }
@@ -549,12 +559,12 @@ var mapModule = (function() {
 
     }
 
-    function addStation(loc,alt,func){
+    function addStation(loc,alt,name,func){
         //var number = _vertexArray.length+1
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
 
         var pin = new Microsoft.Maps.Pushpin(loc, {
-            title: 'Station',color: 'green',draggable:true,subTitle:name2
+            title: name,color: 'green',draggable:true,subTitle:name2
             // subTitle: number.toString()
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeStationPosition(e); } );
@@ -637,7 +647,7 @@ var mapModule = (function() {
         _updateVertexPolygon();
     }
 
-    function _changeVertexPosition(){
+    function _changeVertexPosition(e){
         _updateVertexPolygon();
         var pin = e.target;
         var loc = pin.getLocation();
@@ -763,5 +773,7 @@ var mapModule = (function() {
         setClearFunction:setClearFunction,
         setBlockFunction:setBlockFunction,
         stop:stop,
+        setCenter:setCenter,
+        getCenter:getCenter,
     };
 })();
