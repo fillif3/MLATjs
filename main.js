@@ -47,7 +47,7 @@ ipcMain.on("toMain", (event, args) => {
 
             //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
 
-            win.webContents.send("fromMain", data);
+            win.webContents.send("fromMain", ['load',data]);
 
 
         });
@@ -60,6 +60,19 @@ ipcMain.on("toMain", (event, args) => {
         });
        // alert("The file has been succesfully saved");
 
+    } else if (args[0]=='check'){
+        fs.readdir('saves/', (err, files) => {
+            win.webContents.send("fromMain", ['check',files]);
+        });
+        // alert("The file has been succesfully saved");
+
+    } else if (args[0]=='delete'){
+        try {
+            fs.unlinkSync(args[1])
+            //file removed
+        } catch(err) {
+            console.error(err)
+        }
     }
 
 });

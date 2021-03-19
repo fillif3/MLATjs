@@ -264,12 +264,13 @@ var mapModule = (function() {
 
         _startTimeForDebugging=performance.now();
         _endVDOPComputation=false;
-        _clearVDOP();
+
         if ((_vertexArray.length<3)&&(!isCircle)) return null;
         if ((_circlePolygon==null)&&(isCircle)) return null;
 
-        if ((lat_res*lon_res)>10000) alert('You typed high resolution. It can take some time to finish. You can always stop it with stop button')
-        //if (isCircle) _circlePolygon.setOptions({visible:false});
+        if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
+        _clearVDOP();
+            //if (isCircle) _circlePolygon.setOptions({visible:false});
         //else _vertexPolygon.setOptions({visible:false});
         if (timeout ===4) _step = 30;
         else _step = 5;

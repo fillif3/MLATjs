@@ -1,14 +1,60 @@
 window.api.receive("fromMain", (data) => {
-    loadTables(data);
+    console.log('tutaj')
+    if (data[0]=='load') loadTables(data[1]);
+    else if (data[0]=='check') addSavesToList(data[1]);
 });
 
-function loadFunction(){
+function addSavesToList(saves){
+    var list= document.getElementById("selectSaveList");
+
+    if (list.value == 0) list.value=1;
+    saves.forEach(save =>{
+        let opt = document.createElement('option');
+        opt.value = save.slice(0,save.length-4);
+        opt.innerHTML = save.slice(0,save.length-4);
+        list.appendChild(opt);
+
+    })
+}
+
+function addFunction(){
+    let newSave = document.getElementById('saveName').value;
+    console.log(newSave);
+    var list= document.getElementById("selectSaveList");
+    let opt = document.createElement('option');
+    opt.value = newSave;
+    opt.innerHTML = newSave;
+    list.appendChild(opt);
+    let path = 'saves/' + newSave+'.txt'
+
+    window.api.send("toMain", ['save',path,saveTables()]);
+}
+
+function checkSaves(){
 
     //document.getElementById('blocker').style.display='block';
+    window.api.send("toMain", ['check']);
+}
 
 
-    restartMap();
-    window.api.send("toMain", ['load','saves/myfile3.txt']);
+function loadFunction(){
+    if (window.confirm("Do you really want to load a file?\nUnsaved progress will be lost.")) {
+        //document.getElementById('blocker').style.display='block';
+        var list = document.getElementById("selectSaveList");
+        let path = 'saves/' + list.value + '.txt'
+        restartMap();
+        window.api.send("toMain", ['load', path]);
+    }
+}
+
+function deleteFunction(){
+    if (window.confirm("Do you really want to delete a file?")) {
+        var list= document.getElementById("selectSaveList");
+        let value = list.value
+        list.remove(list.selectedIndex);
+        let path = 'saves/'+value+'.txt'
+        window.api.send("toMain", ['delete',path,saveTables()]);
+    }
 
 
 }
@@ -16,12 +62,10 @@ function loadFunction(){
 function saveFunction(){
 
     //document.getElementById('blocker').style.display='block';
+    var list= document.getElementById("selectSaveList");
+    let path = 'saves/' + list.value+'.txt'
 
-
-
-    window.api.send("toMain", ['save','saves/myfile3.txt',saveTables()]);
-
-
+    window.api.send("toMain", ['save',path,saveTables()]);
 }
 //deleteRowAndUpdateTable(cell,where)
 function restartMap(){
@@ -184,6 +228,7 @@ function GetMap()
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
+    checkSaves();
 
     //const fs = require('fs');
     //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }

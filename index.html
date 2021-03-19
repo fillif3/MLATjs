@@ -174,13 +174,26 @@
             </div>
             <div class = "hidden" id="savingDiv">
                 <div id="loadbutton">
-                    <button type="button" onclick="loadFunction()" class="buttonSkip fullWidth notMargin">Load</button>
+                    <button type="button" onclick="loadFunction()" class="buttonSkip">Load</button>
                 </div>
                 <div id="savebutton">
-                    <button type="button" onclick="saveFunction()" class="buttonSkip fullWidth notMargin">Save</button>
+                    <button type="button" onclick="saveFunction()" class="buttonSkip">Save</button>
+                </div>
+                <div id="addbutton">
+                    <button type="button" onclick="addFunction()" class="buttonSkip">Add save</button>
                 </div>
                 <div id="deletebutton">
-                    <button type="button" onclick="deleteFunction()" class="buttonSkip fullWidth notMargin">Save</button>
+                    <button type="button" onclick="deleteFunction()" class="buttonSkip">Delete</button>
+                </div>
+
+                <div class="halfWidthDivLeft">
+                    <label class="information" onclick= "alert('The altitude of plane. It affects measurment error.')" class="halfWidthDivLeft fullHeight information">Name of new save file</label>
+                    <input class="halfWidthDivLeft fullHeight" id = "saveName"type="text"  value="New save" maxlength="10" size="10">
+                </div>
+                <div  class="halfWidthDivLeft">
+                    <label onclick="alert('Localization algorithm requires selecting base station. It affects measurnment error.\nYou can select station or choose best staion as base station. In this case, measurment error will be computed in the respect to each station and lowest value will be displayed')" class="fullWidth information" >Select base station:</label>
+                    <select class="fullWidth" id="selectSaveList"  maxlength="10" >
+                    </select>
                 </div>
             </div>
             <div id="calculateButton">
