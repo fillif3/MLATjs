@@ -8,7 +8,7 @@ function loadFunction(){
 
 
     restartMap();
-    window.api.send("toMain", ['load']);
+    window.api.send("toMain", ['load','saves/myfile3.txt']);
 
 
 }
@@ -19,7 +19,7 @@ function saveFunction(){
 
 
 
-    window.api.send("toMain", ['save',saveTables()]);
+    window.api.send("toMain", ['save','saves/myfile3.txt',saveTables()]);
 
 
 }

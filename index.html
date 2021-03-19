@@ -168,15 +168,25 @@
 
                 </div>
             </div>
+
+            <div>
+                <button type="button" onclick="toggle('savingDiv',this)" class="hideButton">Saving current session - show</button>
+            </div>
+            <div class = "hidden" id="savingDiv">
+                <div id="loadbutton">
+                    <button type="button" onclick="loadFunction()" class="buttonSkip fullWidth notMargin">Load</button>
+                </div>
+                <div id="savebutton">
+                    <button type="button" onclick="saveFunction()" class="buttonSkip fullWidth notMargin">Save</button>
+                </div>
+                <div id="deletebutton">
+                    <button type="button" onclick="deleteFunction()" class="buttonSkip fullWidth notMargin">Save</button>
+                </div>
+            </div>
             <div id="calculateButton">
                 <button type="button" onclick="calculateVDOP()" class="buttonSkip fullWidth notMargin">Calculate VDOP</button>
             </div>
-            <div id="loadbutton">
-                <button type="button" onclick="loadFunction()" class="buttonSkip fullWidth notMargin">Load</button>
-            </div>
-            <div id="savebutton">
-                <button type="button" onclick="saveFunction()" class="buttonSkip fullWidth notMargin">Save</button>
-            </div>
+
         </div>
 
 
