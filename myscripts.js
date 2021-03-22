@@ -188,6 +188,25 @@ function loadTables(text){
     togglePolygon(document.getElementById('polygonCheckBox'));
     index++;
     mapModule.setCenter(arrText[index+1],arrText[index+2]);
+    index+= 4;
+    let VDOPPixelsLocations=[];
+    let VDOPValues=[];
+    while (arrText[index] !== 'end') {
+        let helper =[]
+        for (let i = 0; i < 4; i++) {
+
+            let loc = new Microsoft.Maps.Location(parseFloat(arrText[index]) ,parseFloat(arrText[index+1]));
+            //alert(loc+' '+arrText[index]+' '+arrText[index+1])
+            helper.push(loc);
+
+            index+=2;
+        }
+        VDOPPixelsLocations.push(helper);
+        VDOPValues.push(arrText[index])
+        index++;
+    }
+    console.log(VDOPPixelsLocations);
+    mapModule.createPixelsFromData(VDOPPixelsLocations,VDOPValues);
 
     //console.log(lat_res,lon_res,alt,baseStation,isFigureComplex);
 }
@@ -229,8 +248,25 @@ function saveTables(){
     textToSave+='end\n';
 
     var loc = mapModule.getCenter();
-    textToSave+= (loc.latitude.toString().slice(0,7)+'\n')
-    textToSave+= (loc.longitude.toString().slice(0,7))
+    textToSave+= (loc.latitude.toString().slice(0,7)+'\n');
+    textToSave+= (loc.longitude.toString().slice(0,7)+'\n');
+
+    textToSave+='end\n';
+
+    let VDOPPixels= mapModule.getVDOPPixels();
+    let VDOPValues= mapModule.getVDOPValues();
+
+    for (let i=0;i<VDOPPixels.length;++i){
+        let locs = VDOPPixels[i].getLocations();
+        for (let j=0;j<4;++j){
+            let lat = locs[j].latitude.toString().slice(0,7);
+            let lon = locs[j].longitude.toString().slice(0,7);
+            textToSave+=(lat +'\n'+lon +'\n');
+        }
+        textToSave+=(VDOPValues[i].toString().slice(0,7)+'\n');
+    }
+    textToSave+='end';
+
 
     return textToSave;
 }

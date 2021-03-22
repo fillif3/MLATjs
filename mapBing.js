@@ -39,6 +39,29 @@ var mapModule = (function() {
     var _endVDOPComputation=false;
 
 
+    function createPixelsFromData(pixelsLocations,values) {
+        for (let i=0;i<pixelsLocations.length;++i){
+            let color = _getColor(values[i])
+            //alert(color+' '+pixelsLocations[i]+' '+values[i])
+            let pin = new Microsoft.Maps.Polygon(pixelsLocations[i], {strokeThickness: 0, fillColor: color});
+            Microsoft.Maps.Events.addHandler(pin, "mouseover", function (e) {
+                _showVDOP(e);
+            });
+            _MAP_REFERENCE.entities.push(pin);
+            _VDOPPixels.push(pin);
+            _VDOPValues.push(values[i]);
+
+        }
+    }
+
+    function getVDOPPixels(){
+        return _VDOPPixels;
+    }
+
+    function getVDOPValues(){
+        return _VDOPValues;
+    }
+
     function checkIfMapIsSet(){
         if (_MAP_REFERENCE== null) return false;
         return true;
@@ -269,10 +292,16 @@ var mapModule = (function() {
         _startTimeForDebugging=performance.now();
         _endVDOPComputation=false;
 
-        if ((_vertexArray.length<3)&&(!isCircle)) return null;
-        if ((_circlePolygon==null)&&(isCircle)) return null;
+        if ((_vertexArray.length<3)&&(!isCircle)) {
+            alert('There is no polygon. You need more vertexes');
+            return null;
+        }
+        if ((_circlePolygon==null)&&(isCircle)) {
+            alert('There is no circle. You need to choose center of circle');
+            return null;
+        }
 
-        if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
+
         _clearVDOP();
             //if (isCircle) _circlePolygon.setOptions({visible:false});
         //else _vertexPolygon.setOptions({visible:false});
@@ -290,10 +319,12 @@ var mapModule = (function() {
 
 
 
-        if (newStationArray.length<3) return null;
-        if ((_vertexArray.length<3)&&(!isCircle)) return null;
-        if ((_circlePolygon==null)&&(isCircle)) return null;
+        if (newStationArray.length<3) {
+            alert('There are less then 3 active stations. You need at least 3 active stations to compute measurement errors');
+            return null;
+        }
         if (_blockFunction!=null) _blockFunction();
+        if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
         console.log(isCircle);
         _edges = _getPolygonEdgeValues(isCircle);
         //console.log(edges);
@@ -781,5 +812,8 @@ var mapModule = (function() {
         setCenter:setCenter,
         getCenter:getCenter,
         checkIfMapIsSet:checkIfMapIsSet,
+        getVDOPPixels:getVDOPPixels,
+        getVDOPValues:getVDOPValues,
+        createPixelsFromData:createPixelsFromData,
     };
 })();
