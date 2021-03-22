@@ -10,7 +10,7 @@ var mapModule = (function() {
     var _endTimeForDebugging=0;
 
     // Map varaiables
-    var _MAP_REFERENCE = '';
+    var _MAP_REFERENCE = null;
     var _handlers = new Map();
     // Station variables
     var _stationArray =[];
@@ -39,6 +39,10 @@ var mapModule = (function() {
     var _endVDOPComputation=false;
 
 
+    function checkIfMapIsSet(){
+        if (_MAP_REFERENCE== null) return false;
+        return true;
+    }
 
     // Setting variables
 
@@ -776,5 +780,6 @@ var mapModule = (function() {
         stop:stop,
         setCenter:setCenter,
         getCenter:getCenter,
+        checkIfMapIsSet:checkIfMapIsSet,
     };
 })();

@@ -86,6 +86,8 @@ ipcMain.on("toMain", (event, args) => {
         } catch(err) {
             win.webContents.send("fromMain", ['error']);
         }
+    } else if (args[0]=='exit'){
+        app.quit()
     }
 
 });

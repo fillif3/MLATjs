@@ -25,6 +25,26 @@ function addFunction(){
     let opt = document.createElement('option');
     opt.value = newSave;
     opt.innerHTML = newSave;
+    if( /[^a-zA-Z0-9 _]/.test( newSave ) ) {
+        alert('Input is not alphanumeric');
+        return null;
+    }
+    if (list.length>50){
+        alert("You have more than 50 saves. Try deleting some before saving more.");
+        return null;
+    }
+    try {
+        let o = list.options[0];
+        for (let i = 0; i < list.length; ++i){
+            if (list.options[i].value == newSave){
+                alert("This save already exist");
+                return null;
+            }
+        }
+    }
+    catch (e){
+
+    }
     list.appendChild(opt);
     let path = 'saves/' + newSave+'.txt'
 
@@ -219,7 +239,14 @@ function saveTables(){
 function GetMap()
 {
     console.log('tutaj');
-    let map = new Microsoft.Maps.Map('#myMap')
+    try {
+        var map = new Microsoft.Maps.Map('#myMap')
+        console.log('tutaj2');
+    }
+    catch (e){
+        alert('There was a problem with connection. Try again later.')
+        window.api.send("toMain", ['exit']);
+    }
     console.log('tutaj');
     let checkbox = document.getElementById("polygonCheckBox");
     togglePolygon(checkbox);
@@ -229,6 +256,24 @@ function GetMap()
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
     checkSaves();
+
+    //const fs = require('fs');
+    //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
+    //catch(e) { alert('Failed to save the file !'); }
+
+
+    //addEventToMap('Vertex');
+    //Microsoft.Maps.Events.addHandler(map, 'click', function (e) { addNewStation(e); });
+    //Add your post map load code here.
+}
+
+function checkConnection()
+{
+    console.log('tutaj');
+    if (!mapModule.checkIfMapIsSet()) {
+        alert('There was a problem with connection. Try again later.')
+        window.api.send("toMain", ['exit']);
+    }
 
     //const fs = require('fs');
     //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
