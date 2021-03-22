@@ -1,8 +1,14 @@
+function testFunction(){
+    window.api.send("toMain", ['test']);
+}
+
 window.api.receive("fromMain", (data) => {
     console.log('tutaj')
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='check') addSavesToList(data[1]);
-    else if (data[0]=='error') alert('the operation failed')
+    else if (data[0]=='error') alert('the operation failed');
+    else if (data[0]=='test') alert('test');
+    else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
 });
 
 function addSavesToList(saves){
@@ -192,10 +198,11 @@ function loadTables(text){
     let VDOPPixelsLocations=[];
     let VDOPValues=[];
     while (arrText[index] !== 'end') {
+        document.getElementById('PanelVDOP').style.display = "block";
         let helper =[]
         for (let i = 0; i < 4; i++) {
 
-            let loc = new Microsoft.Maps.Location(parseFloat(arrText[index]) ,parseFloat(arrText[index+1]));
+            let loc = [parseFloat(arrText[index]) ,parseFloat(arrText[index+1])];
             //alert(loc+' '+arrText[index]+' '+arrText[index+1])
             helper.push(loc);
 

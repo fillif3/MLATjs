@@ -41,15 +41,26 @@ var mapModule = (function() {
 
     function createPixelsFromData(pixelsLocations,values) {
         for (let i=0;i<pixelsLocations.length;++i){
-            let color = _getColor(values[i])
-            //alert(color+' '+pixelsLocations[i]+' '+values[i])
-            let pin = new Microsoft.Maps.Polygon(pixelsLocations[i], {strokeThickness: 0, fillColor: color});
-            Microsoft.Maps.Events.addHandler(pin, "mouseover", function (e) {
-                _showVDOP(e);
-            });
-            _MAP_REFERENCE.entities.push(pin);
-            _VDOPPixels.push(pin);
-            _VDOPValues.push(values[i]);
+            try {
+                let locs=[];
+                for (var j=0;j<4;++j){
+                    let loc = new Microsoft.Maps.Location(pixelsLocations[i][j][0], pixelsLocations[i][j][1]);
+                    locs.push(loc);
+                }
+
+                let color = _getColor(values[i])
+                //alert(loc+' '+pixelsLocations[i]+' '+values[i]+' '+pixelsLocations.length+' '+values.length)
+                let pixel = new Microsoft.Maps.Polygon(locs, {strokeThickness: 0, fillColor: color});
+                Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
+                    _showVDOP(e);
+                });
+                _MAP_REFERENCE.entities.push(pixel);
+                _VDOPPixels.push(pixel);
+                _VDOPValues.push(values[i]);
+            }
+            catch (e){
+
+            }
 
         }
     }
@@ -325,8 +336,10 @@ var mapModule = (function() {
         }
         if (_blockFunction!=null) _blockFunction();
         if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-        console.log(isCircle);
+        //console.log(isCircle);
+
         _edges = _getPolygonEdgeValues(isCircle);
+        //window.api.send("toMain", ['VDOP',_edges,newStationArray,altitude,base_station,isCircle]);
         //console.log(edges);
         _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
