@@ -300,6 +300,29 @@ var mapModule = (function() {
 
     }
 
+    function _getPolygonOfInterest(isCircle){
+
+        if (isCircle){
+            let polygon = new Map();
+            polygon.set('radius',_circleRadius);
+            let loc = _circlePin.getLocation();
+            polygon.set('lat',loc.latitude);
+            polygon.set('lon',loc.longitude);
+            return polygon
+        } else{
+            let polygon =[]
+            for (let i=0;i<_vertexArray.length;++i){
+                let loc = _vertexArray[i].getLocation();
+                let vert = new Map();
+                vert.set('lat',loc.latitude);
+                vert.set('lon',loc.longitude);
+                polygon.push(vert);
+            }
+            return polygon;
+
+        }
+    }
+
     function calculateVDOP(lat_res,lon_res,altitude,base_station,isCircle,timeout){
 
         _startTimeForDebugging=performance.now();
@@ -347,11 +370,12 @@ var mapModule = (function() {
             stationLocations.push([loc.latitude,loc.longitude])
         }
         let polygonOfIntrest = _getPolygonOfInterest(isCircle);//TODO
+        _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
+        _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
         window.api.send("toMain", ['VDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
             _longitudePrecision,polygonOfIntrest]);
         //console.log(edges);
-        _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
-        _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
+
         _currentLatitude= _edges.get('min_latitude');
         //var n = performance.now();
 
@@ -500,10 +524,6 @@ var mapModule = (function() {
                 if (xPoint<latitude) numberOfIntersections++;
             }
         }
-        if (numberOfIntersections>0) {
-            //console.log(numberOfIntersections);
-            //console.log(numberOfIntersections % 2 == 1)
-        }
         return numberOfIntersections%2===1;
     }
 
@@ -512,7 +532,6 @@ var mapModule = (function() {
         if ((_vertexPolygon == null)&&(!isCircle)) return null;
         if ((_circlePolygon==null)&&(isCircle)) return null;
         if (isCircle){
-            _circleRadius;
 
             var loc =_circlePin.getLocation();
             const meter_per_lon = 40075000*Math.cos(3.14*loc.latitude/180)/360;
