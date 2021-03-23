@@ -8,6 +8,8 @@ const _semiminor_axis = 6356752.31424518
 
 let win;
 
+let stopFlag;
+
 function createWindow () {
     win = new BrowserWindow({
     width: 1200,
@@ -94,43 +96,13 @@ ipcMain.on("toMain", (event, args) => {
     } else if (args[0]=='test'){
         win.webContents.send("fromMain", ['test']);
     } else if (args[0]=='VDOP'){
-        let stationLocations = args[1];
-        let edges = args[2];
-        let altitude = args[3];
-        let base_station = args[4];
-        let isCircle = args[5];
-        let latitudePrecision = args[6];
-        let longitudePrecision = args[7];
-        let polygonOfInterest = args[8];
-        let currentLatitude= edges.get('min_latitude');
-        while (currentLatitude<edges.get('max_latitude')){
-            let currentLongitude= edges.get('min_longitude');
-            let locataionArrayArray = [];
-            let VDOPArray=[]
-            while (currentLongitude < edges.get('max_longitude')){
-                if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
-                    var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
-                    var VDOP = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
-                    //let color = getColor(VDOP)
-                    locataionArrayArray.push(locationArray);
-                    VDOPArray.push(VDOP);
+        let currentLatitude= args[2].get('min_latitude');
+        console.log(Date.now(),'start VDOP');
+        stopFlag=false;
+        computeVDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
 
-
-                }
-
-
-                currentLongitude += longitudePrecision;
-            }
-
-            win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
-            //var waitTill = new Date(new Date().getTime() + 100);
-            //while(waitTill > new Date()){}
-            currentLatitude += latitudePrecision;
-        }
-        win.webContents.send("fromMain", ['VDOPend']);
-        console.log(Date.now(),'liczeni VDOP');
     } else if  (args[0]=='Stop'){
-        console.log(Date.now());
+        stopFlag=true;
     }
 
 });
@@ -150,6 +122,42 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
+
+    let currentLongitude= edges.get('min_longitude');
+
+    let locataionArrayArray = [];
+    let VDOPArray=[]
+    while (currentLongitude < edges.get('max_longitude')){
+        if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
+            var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
+            var VDOP = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
+            //let color = getColor(VDOP)
+            locataionArrayArray.push(locationArray);
+            VDOPArray.push(VDOP);
+
+
+        }
+
+
+        currentLongitude += longitudePrecision;
+    }
+
+    win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
+    //var waitTill = new Date(new Date().getTime() + 100);
+    //while(waitTill > new Date()){}
+    currentLatitude += latitudePrecision;
+
+
+    if (currentLatitude<edges.get('max_latitude')&&(!stopFlag)) setTimeout(function() {
+        computeVDOP(stationLocations, edges, altitude, base_station, isCircle, latitudePrecision, longitudePrecision, polygonOfInterest, currentLatitude);
+    },4);
+    else {
+        console.log(Date.now(),'liczeni VDOP');
+        win.webContents.send("fromMain", ['VDOPend']);
+    }
+}
 
 function getColor(val){
     //console.log(value);
