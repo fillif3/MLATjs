@@ -105,17 +105,26 @@ ipcMain.on("toMain", (event, args) => {
         let currentLatitude= edges.get('min_latitude');
         while (currentLatitude<edges.get('max_latitude')){
             let currentLongitude= edges.get('min_longitude');
+            let locataionArrayArray = [];
+            let VDOPArray=[]
             while (currentLongitude < edges.get('max_longitude')){
                 if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
                     var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
                     var VDOP = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
-                    let color = getColor(VDOP)
+                    //let color = getColor(VDOP)
+                    locataionArrayArray.push(locationArray);
+                    VDOPArray.push(VDOP);
+
 
                 }
 
 
                 currentLongitude += longitudePrecision;
             }
+
+            win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
+            var waitTill = new Date(new Date().getTime() + 100);
+            while(waitTill > new Date()){}
             currentLatitude += latitudePrecision;
         }
 

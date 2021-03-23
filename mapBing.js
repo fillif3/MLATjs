@@ -99,7 +99,6 @@ var mapModule = (function() {
     function setOutputId(val){
 
         _outputId=val;
-        //console.log(_outputId);
         //throw 'qweqwe';
     }
 
@@ -164,11 +163,8 @@ var mapModule = (function() {
 
     function _create_array2D(size1,size2){
         var arr=[];
-        //console.log(arr);
         //throw "koniec";
-        //console.log('-------');
         for (var i=0;i<size1;++i){
-            //console.log(arr);
             var arrHelper=[];
             for (var j=0;j<size2;++j){
                 arrHelper.push(0);
@@ -183,41 +179,27 @@ var mapModule = (function() {
     function _computeJacobian2dot5D(anchors,position){
 
         var jacobian = _create_array2D(anchors.length-1,2);
-        //console.log('-------');
-        //console.log(anchors,'anchors');
-        //console.log(jacobian);
-        //console.log(position,'position');
-        //console.log(math.subset(anchors,math.index(0, [0, 1,2])))
-        //console.log(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]))
+
         var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
-        //console.log(distToReference,'distToReference');
         //refence_derievative = (position[0:2] - anchors[-1][0:2]) / dist_to_refernce
-        //console.log(math.subset(position,math.index([0, 1])));
-        //console.log(math.subset(anchors,math.index(0, [0, 1]))[0]);
+
         var refence_derievative = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
             math.subset(anchors,math.index(0, [0, 1]))[0]),1/distToReference);
-        //console.log(refence_derievative,'refence_derievative');
-        //console.log(refence_derievative);
+
         for (var i=0;i<(anchors.length-1);++i){
-            //console.log(i);
 
             var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i+1, [0, 1,2]))[0]));
-            //console.log();
-            //console.log()
+
             var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
                 math.subset(anchors,math.index(i+1, [0, 1]))[0]),1/distToCurrent);
-            //console.log(JSON.parse(JSON.stringify(distToCurrent)),'distToCurrent');
-            //console.log(JSON.parse(JSON.stringify(gradient)),'gradient');
+
             jacobian[i][0]=gradient[0]-refence_derievative[0];
             jacobian[i][1]=gradient[1]-refence_derievative[1];
-            //console.log(jacobian);
-            //console.log(gradient);
+
             //throw "koniec";
 
         }
-        //console.log(anchors,position);
-        //console.log(jacobian);
-        //throw "koniec";
+
         return jacobian;
     }
 
@@ -241,44 +223,25 @@ var mapModule = (function() {
             anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
             anchors[0]=helper;
 
-            //console.log(new_bases);
-            //console.log(anchors);
-            //throw 'koniec';
-            //console.log(anchors);
-            //console.log(position);
+
             var Jacobian = _computeJacobian2dot5D(anchors, position);
-            //console.log(Jacobian);
             var Q = _compute_Q(anchors.length - 1);
-            //console.log(Q,'Q');
-            //try{
-            //console.log(anchors)
-            //console.log(position)
+
             try {
                 var transposed_Jacobian = math.transpose(Jacobian);
-                //console.log(JSON.parse(JSON.stringify(transposed_Jacobian)),'transposed_Jacobian');
                 var equation = math.multiply(transposed_Jacobian, Jacobian);//np.dot(tran_J,J)
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq2');
                 equation = math.inv(equation);//np.linalg.inv(equation)
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq3');
                 equation = math.multiply(equation, transposed_Jacobian);//np.dot(equation,tran_J)
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq4');
                 equation = math.multiply(equation, Q);//np.dot(equation, Q)
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq5');
                 equation = math.multiply(equation, Jacobian);//np.dot(equation, J)
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq6');
                 equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));//np.dot(equation, np.linalg.inv(np.dot(tran_J,J)))
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq7');
-                //throw "koniec";
-                //equation = Math.sqrt(equation._data[0][0]+equation._data[1][1]);
-                //console.log(JSON.parse(JSON.stringify(equation)),'eq7');
-                //throw "koniec";
+
                 let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
                 if (out < minVDOP) minVDOP = out;
 
             }
                 //}
             catch (e) {
-                //continue;
             }
         }
         return minVDOP;
@@ -290,7 +253,6 @@ var mapModule = (function() {
         var anchors=[];
         for (var i=0;i<newStationArray.length;++i){
             var loc = newStationArray[i].getLocation();
-            //throw 'Parameter is not a number!';
             anchors.push(_geodetic2enu(loc.latitude,loc.longitude,_stationAltitudeArray[i],currentLatitude,currentLongitude,altitude));
         }
 
@@ -339,11 +301,9 @@ var mapModule = (function() {
 
 
         _clearVDOP();
-            //if (isCircle) _circlePolygon.setOptions({visible:false});
-        //else _vertexPolygon.setOptions({visible:false});
+
         if (timeout ===4) _step = 30;
         else _step = 5;
-        //Math.floor(lat_res/10+1);
         base_station--;
         var newStationArray = [];
         if (_ifStationActive!=null){
@@ -360,8 +320,7 @@ var mapModule = (function() {
             return null;
         }
         if (_blockFunction!=null) _blockFunction();
-        if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-        //console.log(isCircle);
+        //if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
 
         _edges = _getPolygonEdgeValues(isCircle);
         let stationLocations=[]
@@ -374,12 +333,16 @@ var mapModule = (function() {
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
         window.api.send("toMain", ['VDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
             _longitudePrecision,polygonOfIntrest]);
-        //console.log(edges);
 
         _currentLatitude= _edges.get('min_latitude');
         //var n = performance.now();
 
-        calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout);
+        //calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout);
+
+        // For debigging
+        if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
+        if (_circlePolygon!=null) _circlePolygon.setOptions({visible:false});
+        if (_clearFunction!=null) _clearFunction();
         return 0;
     }
 
@@ -392,12 +355,9 @@ var mapModule = (function() {
                 if (_checkIfPointInsidePolygon(_currentLatitude, _currentLongitude, isCircle)) {
                     var locationArray = _getPixelLocationArray(_currentLatitude, _currentLongitude, _latitudePrecision, _longitudePrecision);
 
-                    //console.log('tutaj');
-                    //console.log('jestem tu');
+
                     var color = _computeColorBasedOnVDOP(_currentLatitude, _currentLongitude, altitude, base_station, newStationArray);
-                    //console.log(color);
-                    //throw 'kniec';
-                    //console.log('jestem tu2');
+
                     var pixel = new Microsoft.Maps.Polygon(locationArray, {strokeThickness: 0, fillColor: color});
                     Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
                         _showVDOP(e);
@@ -421,7 +381,6 @@ var mapModule = (function() {
             if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
             if (_circlePolygon!=null) _circlePolygon.setOptions({visible:false});
             _endTimeForDebugging = performance.now();
-            console.log("Call to doSomething took " + (_endTimeForDebugging-_startTimeForDebugging) + " milliseconds.");
             if (_clearFunction!=null) _clearFunction();
 
         }
@@ -430,17 +389,13 @@ var mapModule = (function() {
     }
 
     function _showVDOP(e){
-        //console.log(e);
         var pixel = e.target;
         for (var i=0;i<_VDOPPixels.length;++i){
             if (_VDOPPixels[i]===pixel){
                 break;
             }
         }
-        //console.log(pixel);
-        console.log(_VDOPValues);
-        console.log(i);
-        console.log(_outputId);
+
         if (_outputId!=='') document.getElementById(_outputId).value = _VDOPValues[i].toString().slice(0,7);
         getLocalizationMeasurmentError();
     }
@@ -455,10 +410,8 @@ var mapModule = (function() {
     }
 
 
-    // Color functions
 
     function _getColor(val){
-        //console.log(value);
         var value = val*4;
         var bins = 60;
         if (value>(bins*2+1)) {return 'black';}
@@ -467,21 +420,18 @@ var mapModule = (function() {
         var max = "FF0000";
 
         value= Math.floor(value);
-        //console.log(value);
 
         if (value >bins){
             value-=bins;
             value--;
 
             var tmp = generateColor(max,half,bins);
-            //console.log(tmp[value]);
-            //throw 'kniec';
+
             return '#'+tmp[value];
         } else{
             value--;
             var tmp = generateColor(half,min,bins);
-            //console.log(tmp[value]);
-            //throw 'kniec';
+
             return '#'+tmp[value];
         }
 
@@ -507,16 +457,12 @@ var mapModule = (function() {
             return _circleRadius>Math.sqrt(x**2+y**2);
         }
         var locationArray = _vertexPolygon.getLocations();
-        //console.log(locationArray);
         var numberOfIntersections=0;
         for (var i=1;i<locationArray.length;++i){
             var maxY = Math.max(locationArray[i-1].longitude,locationArray[i].longitude)
             var minY = Math.min(locationArray[i-1].longitude,locationArray[i].longitude)
             if ((longitude>minY)&&(longitude<maxY)){
-                //console.log('---------');
-                //console.log(longitude);
-                //console.log(locationArray[i-1].longitude);
-                //console.log(locationArray[i].longitude);
+
                 var firstPartOfLine = Math.abs(locationArray[i-1].longitude-longitude)
                 var secondPartOfLine = Math.abs(locationArray[i].longitude-longitude)
                 var division = firstPartOfLine/(firstPartOfLine+secondPartOfLine);
@@ -544,7 +490,6 @@ var mapModule = (function() {
         }
         var locations = _vertexPolygon.getLocations();
 
-        //await sleep(2000);
         var edges = new Map();
         edges.set('min_latitude',locations[0].latitude);
         edges.set('max_latitude',locations[0].latitude);
@@ -570,7 +515,6 @@ var mapModule = (function() {
 
     }
 
-    // Pin functions
 
     function _getPixelLocationArray(latitude,longitude,latitudePrecision,longitudePrecision){
         var locationsArray=[]
@@ -583,7 +527,6 @@ var mapModule = (function() {
         loc = new Microsoft.Maps.Location(latitude-0.5*latitudePrecision,longitude+0.5*longitudePrecision);
         locationsArray.push(loc);
 
-        //console.log(locationsArray);
         return locationsArray;
     }
 
@@ -598,7 +541,6 @@ var mapModule = (function() {
 
     }
 
-    // station functions
 
 
     function getIndexOfStation(pin){
@@ -632,17 +574,14 @@ var mapModule = (function() {
         _MAP_REFERENCE.entities.remove(oldPin);
         _stationArray.splice(index,1,newPin);
         _stationAltitudeArray.splice(index,1,alt);
-        console.log(_stationAltitudeArray);
 
     }
 
     function addStation(loc,alt,name,func){
-        //var number = _vertexArray.length+1
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
 
         var pin = new Microsoft.Maps.Pushpin(loc, {
             title: name,color: 'green',draggable:true,subTitle:name2
-            // subTitle: number.toString()
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeStationPosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
@@ -650,7 +589,6 @@ var mapModule = (function() {
         _MAP_REFERENCE.entities.push(pin);
         _stationArray.push(pin);
         _ifStationActive.push(true);
-        //console.log(alt);
         _stationAltitudeArray.push(alt);
     }
 
@@ -668,7 +606,6 @@ var mapModule = (function() {
         pin.setOptions({subTitle:name2});
     }
 
-    //  Vertexes functions
 
     function vertexPolygonVisibility(flag){
         if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:flag});
@@ -680,9 +617,7 @@ var mapModule = (function() {
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
         var newPin = new Microsoft.Maps.Pushpin(loc, {
             title: name,draggable:true,icon:'pin.png',subTitle:name2
-            // subTitle: number.toString()
         });
-        console.log(newPin.getSubTitle())
         Microsoft.Maps.Events.addHandler(newPin,'dragend',  function (e) { _changeVertexPosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(newPin,'dragend',  function (e) { func(e); } );
         _MAP_REFERENCE.entities.push(newPin);
@@ -706,13 +641,11 @@ var mapModule = (function() {
 
         _MAP_REFERENCE.entities.push(pin);
         _vertexArray.push(pin);
-        //console.log(_vertexArray);
         _updateVertexPolygon();
     }
 
     function deleteVertex(index){
     	var pin;
-    	console.log(index)
         for (var i=(index+1);i<_vertexArray.length;i++){
             pin =  _vertexArray[i];
             let name = 'Vertex '+(i);
@@ -756,7 +689,6 @@ var mapModule = (function() {
             vertexes.push(loc);
             angle+= 6.28/30;
         }
-        //console.log(vertexes);
         if (_circlePolygon !=null) _MAP_REFERENCE.entities.remove(_circlePolygon);
         _circlePolygon = new Microsoft.Maps.Polygon(vertexes,{fillColor:'white',visible:true});
         _MAP_REFERENCE.entities.push(_circlePolygon);
@@ -767,8 +699,7 @@ var mapModule = (function() {
         _clearVDOP();
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
 
-        //console.log('tutaj');
-        //var number = _vertexArray.length+1
+
         var pin = new Microsoft.Maps.Pushpin(loc, {
             title: 'circle',draggable:true,icon:'pin.png',subTitle:name2
             // subTitle: number.toString()
@@ -780,7 +711,6 @@ var mapModule = (function() {
         _circleRadius=radius;
         _circlePin=pin;
         _calculateVertexesOfCircle(loc.latitude,loc.longitude,radius);
-        //console.log(_vertexArray);
         //_updateVertexPolygon();
     }
 
@@ -803,14 +733,12 @@ var mapModule = (function() {
     //  Map functions
 
     function setMap(reference) {
-        //console.log(reference);
         _MAP_REFERENCE = reference;
     }
 
     function addHandlerMap(typeOfEvent,func) {
         deleteHandler(typeOfEvent);
         var referenceToHandler = Microsoft.Maps.Events.addHandler(_MAP_REFERENCE,typeOfEvent, func );
-        //console.log(reference);
         _handlers.set(typeOfEvent,referenceToHandler);
     }
 
@@ -823,7 +751,6 @@ var mapModule = (function() {
 
 
     //function getMap() {
-    //    //console.log(reference);
     //    return _MAP_REFERENCE;
     //}
 

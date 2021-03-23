@@ -3,7 +3,6 @@ function testFunction(){
 }
 
 window.api.receive("fromMain", (data) => {
-    console.log('tutaj')
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='check') addSavesToList(data[1]);
     else if (data[0]=='error') alert('the operation failed');
@@ -26,7 +25,6 @@ function addSavesToList(saves){
 
 function addFunction(){
     let newSave = document.getElementById('saveName').value;
-    console.log(newSave);
     var list= document.getElementById("selectSaveList");
     let opt = document.createElement('option');
     opt.value = newSave;
@@ -128,7 +126,6 @@ function loadTables(text){
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
             '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
         addStationToList();
-        console.log(arrHelper[4])
         if (arrHelper[4]=='false') {
             table.rows[counter].cells[5].firstChild.checked = false;
             changeStateofStation(table.rows[counter].cells[5].firstChild );
@@ -138,7 +135,6 @@ function loadTables(text){
 
     }
 
-    //console.log(stations,'stacje');
 
     index++;
     counter=1;
@@ -160,7 +156,6 @@ function loadTables(text){
         counter++;
     }
 
-    //console.log(vertexes,'vertex');
     index++;
     //var element= document.getElementById('stationTable');
     while (arrText[index] !== 'end') {
@@ -176,7 +171,6 @@ function loadTables(text){
             '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Edit</button>',
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
     }
-    //console.log(circle,'circle');
     index++;
     document.getElementById('latitudeResolutionInput').value = arrText[index];
     index++;
@@ -190,7 +184,6 @@ function loadTables(text){
 
     index++;
     document.getElementById('polygonCheckBox').checked= (arrText[index] == 'true');
-    console.log(arrText[index])
 
     togglePolygon(document.getElementById('polygonCheckBox'));
     index++;
@@ -213,10 +206,8 @@ function loadTables(text){
         VDOPValues.push(arrText[index])
         index++;
     }
-    console.log(VDOPPixelsLocations);
     mapModule.createPixelsFromData(VDOPPixelsLocations,VDOPValues);
 
-    //console.log(lat_res,lon_res,alt,baseStation,isFigureComplex);
 }
 
 function saveTables(){
@@ -282,16 +273,13 @@ function saveTables(){
 
 function GetMap()
 {
-    console.log('tutaj');
     try {
         var map = new Microsoft.Maps.Map('#myMap')
-        console.log('tutaj2');
     }
     catch (e){
         alert('There was a problem with connection. Try again later.')
         window.api.send("toMain", ['exit']);
     }
-    console.log('tutaj');
     let checkbox = document.getElementById("polygonCheckBox");
     togglePolygon(checkbox);
     mapModule.setMap(map);
@@ -313,7 +301,6 @@ function GetMap()
 
 function checkConnection()
 {
-    console.log('tutaj');
     if (!mapModule.checkIfMapIsSet()) {
         alert('There was a problem with connection. Try again later.')
         window.api.send("toMain", ['exit']);
@@ -336,7 +323,6 @@ function createGradientDiv(){
     var max = "FF0000";
     var colors = generateColor(half,min,15);
     colors = colors.concat(generateColor(max,half,15));
-    console.log(colors,'kolory');
     for (let i=0;i<30;++i){
         let innerDiv = document.createElement('div');
         innerDiv.innerHTML = i+1;
@@ -398,7 +384,6 @@ function addNewVertex(e){
         var loc = e.target.tryPixelToLocation(point);
 
         //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
-        //console.log(loc.latitude.toString().slice(0,7));
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
@@ -429,7 +414,6 @@ function addNewVertex(e){
     var newRow = table.rows.length;
 
     var content = [newRow,lat,lon ] ;
-    //console.log(content);
     addNewRowToTable("vertexTable",newRow,content,
     '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Edit</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',null);
@@ -442,7 +426,6 @@ function addNewCircle(e){
         var loc = e.target.tryPixelToLocation(point);
 
         //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
-        //console.log(loc.latitude.toString().slice(0,7));
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
@@ -468,7 +451,6 @@ function addNewCircle(e){
     var newRow = table.rows.length;
 
     var content = [lat,lon ,2000] ;
-    //console.log(content);
     addNewRowToTable("circleOfInterest",newRow,content,
         '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Edit</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>',null);
@@ -484,7 +466,6 @@ function addNewStation(e){
         var loc = e.target.tryPixelToLocation(point);
 
         //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
-        //console.log(loc.latitude.toString().slice(0,7));
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
 
@@ -593,11 +574,7 @@ function deleteRowAndUpdateTable(cell,where){
 
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
     var table = document.getElementById(tableId);
-    //console.log('tutaj')
-    //console.log(cell.parentNode.parentNode.parentNode.parentNode)
     var row = cell.parentNode.parentNode
-    //console.log(row)
-    //console.log(table.rows)
     row.parentNode.removeChild(row);
     if (tableId === "circleOfInterest") {
         deletePin(null,tableId);
@@ -612,8 +589,6 @@ function deleteRowAndUpdateTable(cell,where){
     for (var i = 1;i<numberOfRows;++i)
     {
         cell = table.rows[i].cells[0];
-        console.log(i,'iteration');
-        console.log(cell.innerHTML);
         if ((flag) && (cell.innerHTML == (i+1))){
             flag = false;
             deletePin(i-1,tableId);
@@ -629,8 +604,6 @@ function deleteRowAndUpdateTable(cell,where){
 function editRowAndUpdateTable(cell){ //To Do
 
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
-    //console.log('tutaj')
-    //console.log(cell.parentNode.parentNode.parentNode.parentNode)
     var row = cell.parentNode.parentNode;
     if (tableId==="circleOfInterest"){
         var lat = row.cells[0].innerHTML;
@@ -658,13 +631,10 @@ function editRowAndUpdateTable(cell){ //To Do
         return null;
     }
     var name = row.cells[4].innerHTML;
-    //console.log(lat);
     var loc = new Microsoft.Maps.Location(parseFloat(lat),parseFloat(lon));
     editPin(loc,index,tableId,alt,name);
 
 
-    //console.log(row)
-    //console.log(table.rows)
     // error -> need to find a way to get row and dleete it
     //row_index = table.rows.indexOf(row)
     //table.deleteRow(indexOfRow)
@@ -718,7 +688,6 @@ function hideVisuals(){
 
 function hideDiv(divId)
 {
-    //console.log(divId)
     document.getElementById(divId).style.display = "none";
 
 }
@@ -726,14 +695,12 @@ function hideDiv(divId)
 function showDiv(divId)
 {
 
-    //console.log(divId)
     document.getElementById(divId).style.display = "block";
 
 }
 
 function showMassageWindow(whichControlsShow,whichButtonShow)
 {
-    //console.log(whichControlsShow)
 
     if (whichButtonShow === "Vertex") showDiv("addVertexButton");
     else hideDiv("addVertexButton");
@@ -752,7 +719,6 @@ function showMassageWindow(whichControlsShow,whichButtonShow)
 
 function hideMassageWindow(whichDivsHide)
 {
-    //console.log('1')
 
     if (whichDivsHide.includes("lat")) hideDiv("latInputPopUpDiv");
     if (whichDivsHide.includes("long")) hideDiv("longInputPopUpDiv");
@@ -768,7 +734,6 @@ function getLocalizationMeasurmentError(){
     var VDOP = parseFloat(document.getElementById('VDOPInput').value);
 
     var localization_error = t_measurment_error*VDOP*0.3;
-    console.log(t_measurment_error,VDOP,localization_error);
     var out = document.getElementById('localizationMeasurmentErrorInput');
     out.value = localization_error.toString().slice(0,7);
 
@@ -781,13 +746,11 @@ function toggle(divId,button){
     //else div.style.display="none";
     if (button.innerHTML.slice(button.innerHTML.length-4,button.innerHTML.length)==='hide') button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
     else button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'hide';
-    //console.log($('#'+divId).is(':visible'));
     $('#'+divId).slideToggle("slow");
 
 }
 
 function togglePolygon(checkBox){
-    console.log(checkBox.checked)
     if (checkBox.checked){
         var button = document.getElementById("polygonShowingTableButton")
         button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
@@ -800,7 +763,6 @@ function togglePolygon(checkBox){
         mapModule.vertexPolygonVisibility(true);
         mapModule.circlePolygonVisibility(false);
     } else {
-        console.log('qwrerq')
         //$('#'+"circleOfInterestDiv").slideDown("slow");
         $('#'+"circleOfInterestHideDiv").slideDown("slow");
         $('#'+"polygonOfInterestDiv").slideUp("slow");
@@ -814,8 +776,7 @@ function togglePolygon(checkBox){
 // math functions
 
 function doesArrayContainOnlyNumbers(arr){
-    for (var i=0;i<arr.length;++i) if (isNaN(arr[i])) {console.log(i);return false;}
-    console.log('tu');
+    for (var i=0;i<arr.length;++i) if (isNaN(arr[i])) return false;
     return true;
 }
 
