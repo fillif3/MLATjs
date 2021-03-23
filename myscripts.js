@@ -8,6 +8,7 @@ window.api.receive("fromMain", (data) => {
     else if (data[0]=='error') alert('the operation failed');
     else if (data[0]=='test') alert('test');
     else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
+    else if (data[0]=='VDOPend') restoreVisuals();
 });
 
 function addSavesToList(saves){

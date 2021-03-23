@@ -93,7 +93,7 @@ var mapModule = (function() {
     }
 
     function stop(){
-        _endVDOPComputation=true;
+        window.api.send("toMain", ['Stop']);
     }
 
     function setOutputId(val){
@@ -320,7 +320,7 @@ var mapModule = (function() {
             return null;
         }
         if (_blockFunction!=null) _blockFunction();
-        //if ((lat_res*lon_res)>100000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
+        if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
 
         _edges = _getPolygonEdgeValues(isCircle);
         let stationLocations=[]
@@ -342,7 +342,7 @@ var mapModule = (function() {
         // For debigging
         if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
         if (_circlePolygon!=null) _circlePolygon.setOptions({visible:false});
-        if (_clearFunction!=null) _clearFunction();
+        //if (_clearFunction!=null) _clearFunction();
         return 0;
     }
 

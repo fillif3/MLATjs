@@ -123,11 +123,14 @@ ipcMain.on("toMain", (event, args) => {
             }
 
             win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
-            var waitTill = new Date(new Date().getTime() + 100);
-            while(waitTill > new Date()){}
+            //var waitTill = new Date(new Date().getTime() + 100);
+            //while(waitTill > new Date()){}
             currentLatitude += latitudePrecision;
         }
-
+        win.webContents.send("fromMain", ['VDOPend']);
+        console.log(Date.now(),'liczeni VDOP');
+    } else if  (args[0]=='Stop'){
+        console.log(Date.now());
     }
 
 });
