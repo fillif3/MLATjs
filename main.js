@@ -36,7 +36,6 @@ app.whenReady().then(createWindow)
 
 
 ipcMain.on("toMain", (event, args) => {
-
     //alert("The file has been succesfully saved");
     if (args[0]=='load') {
         fs.readFile(args[1], 'utf8', (err, data) => {
@@ -90,6 +89,31 @@ ipcMain.on("toMain", (event, args) => {
         app.quit()
     } else if (args[0]=='test'){
         win.webContents.send("fromMain", ['test']);
+    } else if (args[0]=='VDOP'){
+        let stationLocations = args[1];
+        let edges = args[2];
+        let altitude = args[3];
+        let base_station = args[4];
+        let isCircle = args[5];
+        let latitudePrecision = args[6];
+        let longitudePrecision = args[7];
+        let polygonOfInterest = args[8];
+        let currentLatitude= edges.get('min_latitude');
+        while (currentLatitude<edges.get('max_latitude')){
+            let currentLongitude= _edges.get('min_longitude');
+            while (currentLongitude < _edges.get('max_longitude')){
+                if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
+                    let locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
+                    let color = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
+                    console.log(color,'color');
+                    console.log(locationArray,'lokacje')
+                }
+
+
+                currentLongitude += longitudePrecision;
+            }
+            currentLatitude += _latitudePrecision;
+        }
     }
 
 });

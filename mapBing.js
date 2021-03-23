@@ -1,4 +1,6 @@
 
+
+
 var mapModule = (function() {
     'use strict';
 
@@ -339,7 +341,14 @@ var mapModule = (function() {
         //console.log(isCircle);
 
         _edges = _getPolygonEdgeValues(isCircle);
-        //window.api.send("toMain", ['VDOP',_edges,newStationArray,altitude,base_station,isCircle]);
+        let stationLocations=[]
+        for (let i=0;i<newStationArray.length;i++){
+            let loc = newStationArray[i].getLocation();
+            stationLocations.push([loc.latitude,loc.longitude])
+        }
+        let polygonOfIntrest = _getPolygonOfInterest(isCircle);//TODO
+        window.api.send("toMain", ['VDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
+            _longitudePrecision,polygonOfIntrest]);
         //console.log(edges);
         _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
@@ -352,13 +361,13 @@ var mapModule = (function() {
 
     function calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout){
 
-        _currentLongitude= _edges.get('min_longitude');
         for (let i=0;i<_step;++i) {
             _currentLongitude= _edges.get('min_longitude');
             while (_currentLongitude < _edges.get('max_longitude')) {
-                var locationArray = _getPixelLocationArray(_currentLatitude, _currentLongitude, _latitudePrecision, _longitudePrecision);
 
                 if (_checkIfPointInsidePolygon(_currentLatitude, _currentLongitude, isCircle)) {
+                    var locationArray = _getPixelLocationArray(_currentLatitude, _currentLongitude, _latitudePrecision, _longitudePrecision);
+
                     //console.log('tutaj');
                     //console.log('jestem tu');
                     var color = _computeColorBasedOnVDOP(_currentLatitude, _currentLongitude, altitude, base_station, newStationArray);

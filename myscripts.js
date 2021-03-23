@@ -91,6 +91,7 @@ function saveFunction(){
     //document.getElementById('blocker').style.display='block';
     var list= document.getElementById("selectSaveList");
     let path = 'saves/' + list.value+'.txt'
+    if (!window.confirm("Do you want to save? Current file is oging to be deleted.")) return null;
 
     window.api.send("toMain", ['save',path,saveTables()]);
 }
