@@ -1,8 +1,8 @@
 {
-  "_comment1": "electron-packager . VDOP-calc --platform=win32 --arch=all, electron .",
-  "name": "my-electron-app",
+  "_comment1": "electron-packager . MLAT analazer --platform=win32 --arch=all, electron .",
+  "name": "MLAT analazer",
   "version": "0.1.0",
-  "author": "your name",
+  "author": "Filip Surma",
   "description": "My Electron app",
   "main": "main.js",
   "scripts": {

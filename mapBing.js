@@ -632,21 +632,42 @@ var mapModule = (function() {
 
     function addVertex(loc,func){
         //var number = _vertexArray.length+1
-        var name = 'Vertex ' + (_vertexArray.length+1);
-        var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
+
 
         var pin = new Microsoft.Maps.Pushpin(loc, {
-            title: name,draggable:true,icon:'pin.png',subTitle:name2
+            draggable:true,icon:'pin.png'
             // subTitle: number.toString()
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeVertexPosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
 
+        let index;
+
+
+        if (_vertexArray.length>2) {
+            index = _findNewVertexIndex(pin);
+            _vertexArray.splice(index, 0, pin);
+            _renameVertexes(index-1);
+            //_renameVertexes(index-1);
+        } else {
+            index = _vertexArray.length;
+            _vertexArray.push(pin);
+        }
+
+        var name = 'Vertex ' + (index+1);
+        var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
+
+        pin.setOptions({title: name,subTitle:name2});
         _MAP_REFERENCE.entities.push(pin);
-        let index = _findNewVertexIndex(pin);
-        console.log(index);
-        _vertexArray.push(pin);
         _updateVertexPolygon();
+        return index;
+    }
+
+    function _renameVertexes(index){
+        for (let i=index;i<_vertexArray.length;++i){
+            //alert(i);
+            _vertexArray[i].setOptions({title: 'Vertex '+(i+1)});
+        }
     }
 
     function _findNewVertexIndex(vertex){
@@ -661,22 +682,34 @@ var mapModule = (function() {
             }
         }
         return index;
+        //return minDistance;
     }
 
     function _computeDistanceToLineOfPolygon(loc,currentIndex){
         let nextIndex = currentIndex+1;
+
         if (nextIndex == _vertexArray.length) nextIndex=0;
         let locVertex1 = _vertexArray[currentIndex].getLocation()
         let locVertex2 = _vertexArray[nextIndex].getLocation()
-        let [east1,north1,up1] = _geodetic2enu(locVertex1.latitude,locVertex1.longitude,0,loc.latitude,loc.longitude,0);
-        let [east2,north2,up2] = _geodetic2enu(locVertex2.latitude,locVertex2.longitude,0,loc.latitude,loc.longitude,0);
-        let deltaEast = east1-east2;
-        let deltaNorth = north1-north2;
-        let deltaUp = up1-up2;
-        let segmentLength = Math.sqrt(deltaEast**2+deltaNorth**2+deltaUp**2);
-        let deltaEastUnit = deltaEast/segmentLength;
-        let deltaNorthUnit = deltaNorth/segmentLength;
-        let deltaUpUnit = deltaUp/segmentLength;
+        let polygonPoint1XYZ= _geodetic2enu(locVertex1.latitude,locVertex1.longitude,0,loc.latitude,loc.longitude,0);
+        let polygonPoint2XYZ= _geodetic2enu(locVertex2.latitude,locVertex2.longitude,0,loc.latitude,loc.longitude,0);
+        let deltaPolygonPointXYZ = math.subtract(polygonPoint1XYZ,polygonPoint2XYZ);
+        let segmentLength = math.norm(deltaPolygonPointXYZ,2);
+        //let deltaPolygonPointXYZUnit = math.divide(deltaPolygonPointXYZ,segmentLength);
+        let crossPointOnSegment = math.divide(math.multiply(polygonPoint1XYZ,deltaPolygonPointXYZ),segmentLength**2);
+        let shortestDistance;
+        if (crossPointOnSegment<0){
+            //alert('lewo')
+            shortestDistance=math.norm(polygonPoint1XYZ,2);
+        } else if (crossPointOnSegment>1){
+            //alert('prawo')
+            shortestDistance=math.norm(polygonPoint2XYZ,2);
+        } else{
+            //alert('środerk')
+            shortestDistance = math.norm(math.subtract(polygonPoint1XYZ,math.multiply(crossPointOnSegment,deltaPolygonPointXYZ)),2)
+        }
+        return shortestDistance;
+
 
     }
 

@@ -419,15 +419,23 @@ function addNewVertex(e){
         //alt = parseFloat(alt);
 
     }
-    mapModule.addVertex(loc,function (e) { changeVertexInTable(e); });
-    var table = document.getElementById("vertexTable");
-    var newRow = table.rows.length;
+    let index = mapModule.addVertex(loc,function (e) { changeVertexInTable(e); });
+    //var table = document.getElementById("vertexTable");
+    //var newRow = table.rows.length;
 
-    var content = [newRow,lat,lon ] ;
-    addNewRowToTable("vertexTable",newRow,content,
+    var content = [index+1,lat,lon ] ;
+    addNewRowToTable("vertexTable",index+1,content,
     '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',null);
     hideMassageWindow('lat_lon_alt');
+    updateOrderNumberOfTable("vertexTable",1)
+}
+
+function updateOrderNumberOfTable(tableId,offset){
+    let table = document.getElementById(tableId);
+    for (let i=offset;i<table.rows.length;++i){
+        table.rows[i].cells[0].innerHTML = (i-offset+1);
+    }
 }
 
 function addNewCircle(e){
