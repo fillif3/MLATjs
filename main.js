@@ -108,8 +108,24 @@ const template = [
                       }).then(file => {
                           console.log(file.canceled);
                           if (!file.canceled) {
-                              global.filepath = file.filePaths[0].toString();
-                              console.log(global.filepath);
+                              // Updating the GLOBAL filepath variable
+                              // to user-selected file.
+                              //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
+                              fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
+                                  // Do something with file contents
+                                  //for (let i=0;i<3;++i) data[i]+=data[i];
+                                  // Send result back to renderer process
+                                  if (err!=null) {
+                                      win.webContents.send("fromMain", ['error']);
+                                      return null;
+
+                                  }
+                                  //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+
+                                  win.webContents.send("fromMain", ['load',data]);
+
+
+                              });
                           }
                       }).catch(err => {
                           console.log(err)
@@ -117,10 +133,12 @@ const template = [
                   }
               }
           },
-          //{
-              //label:'clear',
-
-          //}
+          {
+              label:'clear',
+              click(item, focusedWindow){
+                  win.webContents.send("fromMain", ['clear']);
+              }
+          }
       ]
     },
     {

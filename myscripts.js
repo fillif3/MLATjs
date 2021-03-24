@@ -5,6 +5,7 @@ function testFunction(){
 window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
+    else if (data[0]=='clear') restartMap(true);
     else if (data[0]=='check') addSavesToList(data[1]);
     else if (data[0]=='error') alert('the operation failed');
     else if (data[0]=='test') alert('test');
@@ -96,8 +97,8 @@ function saveFunction(){
     window.api.send("toMain", ['save',path,saveTables()]);
 }
 //deleteRowAndUpdateTable(cell,where)
-function restartMap(ask){
-    if (ask) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
+function restartMap(askFlag){
+    if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     let table = document.getElementById('stationTable');
     while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
     table = document.getElementById('vertexTable');
