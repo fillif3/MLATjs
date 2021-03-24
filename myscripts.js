@@ -4,6 +4,7 @@ function testFunction(){
 
 window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
+    else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
     else if (data[0]=='check') addSavesToList(data[1]);
     else if (data[0]=='error') alert('the operation failed');
     else if (data[0]=='test') alert('test');

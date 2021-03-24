@@ -1,4 +1,4 @@
-const { app, BrowserWindow,ipcMain } = require('electron')
+const { app, BrowserWindow,ipcMain,Menu,MenuItem ,dialog} = require('electron')
 const path = require("path");
 const fs = require("fs");
 const math = require("mathjs")
@@ -8,6 +8,200 @@ const _semiminor_axis = 6356752.31424518
 
 let win;
 
+
+const template = [
+    {
+      label: 'File',
+      submenu: [
+          {
+              label: 'save',
+              click(item, focusedWindow) {
+                  dialog.showSaveDialog({
+                      title: 'Select the File Path to save',
+                      defaultPath: path.join(__dirname, '../assets/sample.txt'),
+                      // defaultPath: path.join(__dirname, '../assets/'),
+                      buttonLabel: 'Save',
+                      // Restricting the user to only Text Files.
+                      filters: [
+                          {
+                              name: 'Text Files',
+                              extensions: ['txt']
+                          }, ],
+                      properties: []
+                  }).then(file => {
+                      // Stating whether dialog operation was cancelled or not.
+                      console.log(file.canceled);
+                      if (!file.canceled) {
+                          console.log(file.filePath.toString());
+                          win.webContents.send("fromMain", ['save',file.filePath.toString()]);
+                          // Creating and Writing to the sample.txt file
+                          //fs.writeFile(file.filePath.toString(),
+                          //    'This is a Sample File', function (err) {
+                          //        if (err) throw err;
+                          //        console.log('Saved!');
+                          //    });
+                      }
+                  }).catch(err => {
+                      console.log(err)
+                  });
+              }
+          },
+          {
+              label: 'load',
+              click(item, focusedWindow){
+                  if (process.platform !== 'darwin') {
+                      // Resolves to a Promise<Object>
+                      dialog.showOpenDialog({
+                          title: 'Select the File to be uploaded',
+                          defaultPath: path.join(__dirname, '../assets/'),
+                          buttonLabel: 'Upload',
+                          // Restricting the user to only Text Files.
+                          filters: [
+                              {
+                                  name: 'Text Files',
+                                  extensions: ['txt', 'docx']
+                              }, ],
+                          // Specifying the File Selector Property
+                          properties: ['openFile']
+                      }).then(file => {
+                          // Stating whether dialog operation was
+                          // cancelled or not.
+                          console.log(file.canceled);
+                          if (!file.canceled) {
+                              // Updating the GLOBAL filepath variable
+                              // to user-selected file.
+                              //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
+                              fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
+                                  // Do something with file contents
+                                  //for (let i=0;i<3;++i) data[i]+=data[i];
+                                  // Send result back to renderer process
+                                  if (err!=null) {
+                                      win.webContents.send("fromMain", ['error']);
+                                      return null;
+
+                                  }
+                                  //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+
+                                  win.webContents.send("fromMain", ['load',data]);
+
+
+                              });
+                          }
+                      }).catch(err => {
+                          console.log(err)
+                      });
+                  }
+                  else {
+                      // If the platform is 'darwin' (macOS)
+                      dialog.showOpenDialog({
+                          title: 'Select the File to be uploaded',
+                          defaultPath: path.join(__dirname, '../assets/'),
+                          buttonLabel: 'Upload',
+                          filters: [
+                              {
+                                  name: 'Text Files',
+                                  extensions: ['txt', 'docx']
+                              }, ],
+                          // Specifying the File Selector and Directory
+                          // Selector Property In macOS
+                          properties: ['openFile', 'openDirectory']
+                      }).then(file => {
+                          console.log(file.canceled);
+                          if (!file.canceled) {
+                              global.filepath = file.filePaths[0].toString();
+                              console.log(global.filepath);
+                          }
+                      }).catch(err => {
+                          console.log(err)
+                      });
+                  }
+              }
+          },
+          //{
+              //label:'clear',
+
+          //}
+      ]
+    },
+    {
+        label: 'Edit',
+        submenu: [
+            {
+                role: 'undo'
+            },
+            {
+                role: 'redo'
+            },
+            {
+                type: 'separator'
+            },
+            {
+                role: 'cut'
+            },
+            {
+                role: 'copy'
+            },
+            {
+                role: 'paste'
+            }
+        ]
+    },
+
+    {
+        label: 'View',
+        submenu: [
+            {
+                role: 'reload'
+            },
+            {
+                role: 'toggledevtools'
+            },
+            {
+                type: 'separator'
+            },
+            {
+                role: 'resetzoom'
+            },
+            {
+                role: 'zoomin'
+            },
+            {
+                role: 'zoomout'
+            }/*,
+            {
+                type: 'separator'
+            },
+            {
+                role: 'togglefullscreen'
+            }*/
+        ]
+    },
+
+    {
+        role: 'window',
+        submenu: [
+            {
+                role: 'minimize'
+            },
+            {
+                role: 'close'
+            }
+        ]
+    },
+
+    {
+        role: 'help',
+        submenu: [
+            {
+                label: 'Learn More'
+            }
+        ]
+    }
+]
+
+const menu = Menu.buildFromTemplate(template)
+Menu.setApplicationMenu(menu)
+
 let stopFlag;
 
 function createWindow () {
@@ -15,6 +209,7 @@ function createWindow () {
     width: 1200,
     height: 800,
     title: "Localization measurnment error - accuracy",
+        autoHideMenuBar: false,
     webPreferences: {
       nodeIntegration: true,
       preload: path.join(__dirname, "preload.js")
@@ -26,7 +221,7 @@ function createWindow () {
 
     win.maximize();
 
-  win.webContents.openDevTools()
+  //win.webContents.openDevTools()
 
   ipcMain.on('request-update-label-in-second-window', (event, arg) => {
     // Request to update the label in the renderer process of the second window
