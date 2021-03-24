@@ -95,7 +95,8 @@ function saveFunction(){
     window.api.send("toMain", ['save',path,saveTables()]);
 }
 //deleteRowAndUpdateTable(cell,where)
-function restartMap(){
+function restartMap(ask){
+    if (ask) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     let table = document.getElementById('stationTable');
     while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
     table = document.getElementById('vertexTable');
@@ -106,7 +107,7 @@ function restartMap(){
 }
 
 function loadTables(text){
-    restartMap();
+    restartMap(false);
     let arrText = text.split('\n');
     var index=0;
     //var element= document.getElementById('stationTable');
@@ -123,7 +124,7 @@ function loadTables(text){
         let table = document.getElementById("stationTable");
         let content = [counter,arrHelper[0],arrHelper[1],arrHelper[2] ,arrHelper[3]] ;
         addNewRowToTable("stationTable",newRow,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Apply</button>',
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
             '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
         addStationToList();
@@ -152,7 +153,7 @@ function loadTables(text){
         var newRow = table.rows.length;
         var content = [counter,arrHelper[0],arrHelper[1]] ;
         addNewRowToTable("vertexTable",newRow,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>');
         counter++;
     }
@@ -169,7 +170,7 @@ function loadTables(text){
         mapModule.addCircle(loc,arrHelper[2],changeCircleInTable)
         var content = [arrHelper[0],arrHelper[1],arrHelper[2]] ;
         addNewRowToTable("circleOfInterest",2,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Edit</button>',
+            '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
             '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
     }
     index++;
@@ -334,6 +335,14 @@ function createGradientDiv(){
         motherDiv.appendChild(innerDiv);
     }
     let innerDiv = document.createElement('div');
+    innerDiv.innerHTML = '<';
+    innerDiv.style.backgroundColor='black';
+    innerDiv.style.color='white';
+
+    innerDiv.style.float='left';
+    innerDiv.style.width = '3%';
+    innerDiv.style.textAlign = 'center';
+    motherDiv.appendChild(innerDiv);
     //innerDiv.innerHTML = '31<';
     //innerDiv.style.backgroundColor='black';
     //innerDiv.style.color='white';
@@ -416,7 +425,7 @@ function addNewVertex(e){
 
     var content = [newRow,lat,lon ] ;
     addNewRowToTable("vertexTable",newRow,content,
-    '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Edit</button>',
+    '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',null);
     hideMassageWindow('lat_lon_alt');
 }
@@ -453,7 +462,7 @@ function addNewCircle(e){
 
     var content = [lat,lon ,2000] ;
     addNewRowToTable("circleOfInterest",newRow,content,
-        '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Edit</button>',
+        '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>',null);
     hideMassageWindow('lat_lon_alt');
     if (newRow>2) table.rows[3].parentNode.removeChild(table.rows[2]);
@@ -498,7 +507,7 @@ function addNewStation(e){
     var newRow = table.rows.length;
     var content = [newRow,lat,lon,alt ,"Station"] ;
     addNewRowToTable("stationTable",newRow,content,
-        '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Edit</button>',
+        '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Apply</button>',
         '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
         '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
     hideMassageWindow('lat_lon_alt');

@@ -199,18 +199,18 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
         return polygonOfInterest.get('radius')>Math.sqrt(x**2+y**2);
     }
     var numberOfIntersections=0;
-    for (var i=1;i<locationArray.length;++i){
-        var maxY = Math.max(polygonOfInterest[i-1].get('longitude'),polygonOfInterest[i].get('longitude'))
-        var minY = Math.min(polygonOfInterest[i-1].get('longitude'),polygonOfInterest[i].get('longitude'))
+    for (var i=1;i<polygonOfInterest.length;++i){
+        var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
+        var minY = Math.min(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
         if ((longitude>minY)&&(longitude<maxY)){
             //console.log('---------');
             //console.log(longitude);
             //console.log(locationArray[i-1].longitude);
             //console.log(locationArray[i].longitude);
-            var firstPartOfLine = Math.abs(polygonOfInterest[i-1].get('longitude')-longitude)
-            var secondPartOfLine = Math.abs(polygonOfInterest[i].get('longitude')-longitude)
+            var firstPartOfLine = Math.abs(polygonOfInterest[i-1].get('lon')-longitude)
+            var secondPartOfLine = Math.abs(polygonOfInterest[i].get('lon')-longitude)
             var division = firstPartOfLine/(firstPartOfLine+secondPartOfLine);
-            var xPoint = polygonOfInterest[i-1].get('latitude')+division*(polygonOfInterest[i].get('latitude')- polygonOfInterest[i-1].get('latitude'));
+            var xPoint = polygonOfInterest[i-1].get('lat')+division*(polygonOfInterest[i].get('lat')- polygonOfInterest[i-1].get('lat'));
             if (xPoint<latitude) numberOfIntersections++;
         }
     }

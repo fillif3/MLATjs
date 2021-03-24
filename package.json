@@ -1,5 +1,5 @@
 {
-  "_comment1": "electron-packager <sourcedir> <appname> --platform=<platform> --arch=<arch> [optional flags...]",
+  "_comment1": "electron-packager . VDOP-calc --platform=win32 --arch=all, electron .",
   "name": "my-electron-app",
   "version": "0.1.0",
   "author": "your name",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "electron-packager": "^15.2.0",
-    "mathjs": "^9.3.0"
+    "mathjs": "^9.3.0",
+    "wine": "^0.9.13"
   }
 }

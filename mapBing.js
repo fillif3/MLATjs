@@ -299,18 +299,21 @@ var mapModule = (function() {
             return null;
         }
 
+        if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
 
         _clearVDOP();
 
-        if (timeout ===4) _step = 30;
-        else _step = 5;
-        base_station--;
         var newStationArray = [];
         if (_ifStationActive!=null){
             for (var i=0;i<_ifStationActive.length;++i){
                 if (_ifStationActive[i]) newStationArray.push(_stationArray[i]);
             }
         } else newStationArray = _stationArray;
+
+        if (timeout ===4) _step = 30;
+        else _step = 5;
+        base_station--;
+
 
 
 
@@ -320,7 +323,7 @@ var mapModule = (function() {
             return null;
         }
         if (_blockFunction!=null) _blockFunction();
-        if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
+
 
         _edges = _getPolygonEdgeValues(isCircle);
         let stationLocations=[]
@@ -414,7 +417,7 @@ var mapModule = (function() {
     function _getColor(val){
         var value = val*4;
         var bins = 60;
-        if (value>(bins*2+1)) {return 'black';}
+        if (value>(bins*2+1)) return 'black';
         var min = "00FF00";
         var half = "0000FF";
         var max = "FF0000";
@@ -640,8 +643,41 @@ var mapModule = (function() {
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
 
         _MAP_REFERENCE.entities.push(pin);
+        let index = _findNewVertexIndex(pin);
+        console.log(index);
         _vertexArray.push(pin);
         _updateVertexPolygon();
+    }
+
+    function _findNewVertexIndex(vertex){
+        let loc = vertex.getLocation();
+        let index=0;
+        let minDistance = Number.MAX_VALUE;
+        for (let i=0;i<_vertexArray.length;++i){
+            let distance = _computeDistanceToLineOfPolygon(loc,i);
+            if (distance<minDistance){
+                minDistance=distance;
+                index = (i+1);
+            }
+        }
+        return index;
+    }
+
+    function _computeDistanceToLineOfPolygon(loc,currentIndex){
+        let nextIndex = currentIndex+1;
+        if (nextIndex == _vertexArray.length) nextIndex=0;
+        let locVertex1 = _vertexArray[currentIndex].getLocation()
+        let locVertex2 = _vertexArray[nextIndex].getLocation()
+        let [east1,north1,up1] = _geodetic2enu(locVertex1.latitude,locVertex1.longitude,0,loc.latitude,loc.longitude,0);
+        let [east2,north2,up2] = _geodetic2enu(locVertex2.latitude,locVertex2.longitude,0,loc.latitude,loc.longitude,0);
+        let deltaEast = east1-east2;
+        let deltaNorth = north1-north2;
+        let deltaUp = up1-up2;
+        let segmentLength = Math.sqrt(deltaEast**2+deltaNorth**2+deltaUp**2);
+        let deltaEastUnit = deltaEast/segmentLength;
+        let deltaNorthUnit = deltaNorth/segmentLength;
+        let deltaUpUnit = deltaUp/segmentLength;
+
     }
 
     function deleteVertex(index){

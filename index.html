@@ -42,7 +42,7 @@
 
                           <td  class="information" onclick='alert("Name of station.\nIt can be edited. To refresh label on the map: click \"Edit button\"")'>Name</td>
                           <td class="information" onclick='alert("Deactivated station is not used during calculating measurement error")'>Active</td>
-                        <td class="information" onclick='alert("Refresh position of station on the map based on info typed by user")'>Edit button</td>
+                        <td class="information" onclick='alert("Refresh position of station on the map based on info typed by user")'>Apply button</td>
                           <td class="information" onclick='alert("Delete station from map and table")'>Delete button</td>
                       </tr>
                     </tbody>
@@ -69,7 +69,7 @@
                         <td class="information" onclick="alert('Vertex order number')">Nr</td>
                         <td class="information" onclick='alert("Current latitude of vertex.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Latitude</td>
                         <td class="information" onclick='alert("Current longitude of vertex.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Longitude</td>
-                        <td class="information" onclick='alert("Refresh position of vertex on the map based on info typed by user")'>Edit button</td>
+                        <td class="information" onclick='alert("Refresh position of vertex on the map based on info typed by user")'>Apply button</td>
                           <td  class="information" onclick='alert("Delete vertex from map and table")'>Delete button</td>
                       </tr>
                     </tbody>
@@ -101,7 +101,7 @@
                         <td class="information" onclick='alert("Current latitude of center of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Latitude</td>
                         <td class="information" onclick='alert("Current longitude of center of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>Longitude</td>
                         <td class="information" onclick='alert("Current radius of circle.\nIt can be edited. To refresh position of station in the map: click \"Edit button\"")'>radius (in meters)</td>
-                        <td class="information" onclick='alert("Refresh circle on the map based on info typed by user")'>Edit button</td>
+                        <td class="information" onclick='alert("Refresh circle on the map based on info typed by user")'>Apply button</td>
                         <td  class="information" onclick='alert("Delete circle from map and table")'>Delete button</td>
                     </tr>
                     </tbody>
@@ -200,7 +200,7 @@
                 <button type="button" onclick="calculateVDOP()" class="buttonSkip fullWidth notMargin">Calculate VDOP</button>
             </div>
             <div id="clear">
-                <button type="button" onclick="restartMap()" class="buttonSkip fullWidth notMargin">Clear</button>
+                <button type="button" onclick="restartMap(true)" class="buttonSkip fullWidth notMargin">Clear</button>
             </div>
             <div id="testButton">
                 <button type="button" onclick="testFunction()" class="buttonSkip fullWidth notMargin">Test</button>
