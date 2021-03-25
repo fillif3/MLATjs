@@ -7,7 +7,7 @@ const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
 let win;
-var savePath =null;
+let savePath =null;
 
 const template = [
     {
@@ -234,6 +234,8 @@ ipcMain.on("toMain", (event, args) => {
 
     } else if  (args[0]=='Stop'){
         stopFlag=true;
+    } else if  (args[0]=='clearSavePath'){
+        savePath =null;
     }
 
 });

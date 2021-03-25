@@ -215,6 +215,7 @@ function loadTables(text){
         mapModule.createPixelsFromData(VDOPPixelsLocations, VDOPValues);
     }
     catch (e){
+        window.api.send("toMain", ['clearSavePath']);
         alert('There is something wrong with save.')
     }
 
@@ -297,7 +298,7 @@ function GetMap()
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
-    checkSaves();
+    //checkSaves();
 
     //const fs = require('fs');
     //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
