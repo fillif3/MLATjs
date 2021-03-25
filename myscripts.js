@@ -110,107 +110,113 @@ function restartMap(askFlag){
 
 function loadTables(text){
     restartMap(false);
-    let arrText = text.split('\n');
-    var index=0;
-    //var element= document.getElementById('stationTable');
-    var arrHelper;
-    var counter=1;
-    while (arrText[index] !== 'end') {
-        arrHelper = [];
-        for (let i = 0; i < 5; i++) {
-            arrHelper.push(arrText[index])
-            index++;
+    try {
+
+
+        let arrText = text.split('\n');
+        var index = 0;
+        //var element= document.getElementById('stationTable');
+        var arrHelper;
+        var counter = 1;
+        while (arrText[index] !== 'end') {
+            arrHelper = [];
+            for (let i = 0; i < 5; i++) {
+                arrHelper.push(arrText[index])
+                index++;
+            }
+            let loc = new Microsoft.Maps.Location(arrHelper[0], arrHelper[1]);
+            mapModule.addStation(loc, arrHelper[2], arrHelper[3], changeStationInTable)
+            let table = document.getElementById("stationTable");
+            let content = [counter, arrHelper[0], arrHelper[1], arrHelper[2], arrHelper[3]];
+            addNewRowToTable("stationTable", newRow, content,
+                '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Apply</button>',
+                '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
+                '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
+            addStationToList();
+            if (arrHelper[4] == 'false') {
+                table.rows[counter].cells[5].firstChild.checked = false;
+                changeStateofStation(table.rows[counter].cells[5].firstChild);
+            }
+
+            counter++;
+
         }
-        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
-        mapModule.addStation(loc,arrHelper[2],arrHelper[3],changeStationInTable)
-        let table = document.getElementById("stationTable");
-        let content = [counter,arrHelper[0],arrHelper[1],arrHelper[2] ,arrHelper[3]] ;
-        addNewRowToTable("stationTable",newRow,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Apply</button>',
-            '<button type="button" onclick=deleteRowAndUpdateTable(this,"station") class="buttonSkip fullWidth">Delete</button>',
-            '<input type="checkbox" onchange="changeStateofStation(this)" id="scales" name="scales" checked>');
-        addStationToList();
-        if (arrHelper[4]=='false') {
-            table.rows[counter].cells[5].firstChild.checked = false;
-            changeStateofStation(table.rows[counter].cells[5].firstChild );
-        }
-
-        counter++;
-
-    }
 
 
-    index++;
-    counter=1;
-    //var element= document.getElementById('stationTable');
-    while (arrText[index] !== 'end') {
-        arrHelper = [];
-        for (let i = 0; i < 2; i++) {
-            arrHelper.push(arrText[index])
-            index++;
-        }
-        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
-        mapModule.addVertex(loc,changeVertexInTable)
-        var table = document.getElementById("vertexTable");
-        var newRow = table.rows.length;
-        var content = [counter,arrHelper[0],arrHelper[1]] ;
-        addNewRowToTable("vertexTable",newRow,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
-            '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>');
-        counter++;
-    }
-
-    index++;
-    //var element= document.getElementById('stationTable');
-    while (arrText[index] !== 'end') {
-        arrHelper = [];
-        for (let i = 0; i < 3; i++) {
-            arrHelper.push(arrText[index])
-            index++;
-        }
-        let loc =new Microsoft.Maps.Location(arrHelper[0],arrHelper[1]);
-        mapModule.addCircle(loc,arrHelper[2],changeCircleInTable)
-        var content = [arrHelper[0],arrHelper[1],arrHelper[2]] ;
-        addNewRowToTable("circleOfInterest",2,content,
-            '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
-            '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
-    }
-    index++;
-    document.getElementById('latitudeResolutionInput').value = arrText[index];
-    index++;
-    document.getElementById('longitudeResolutionInput').value= arrText[index];
-    index++;
-    document.getElementById('altitudeInput').value= arrText[index];
-    index++;
-    document.getElementById('selectStationList').value= arrText[index];
-
-
-
-    index++;
-    document.getElementById('polygonCheckBox').checked= (arrText[index] == 'true');
-
-    togglePolygon(document.getElementById('polygonCheckBox'));
-    index++;
-    mapModule.setCenter(arrText[index+1],arrText[index+2]);
-    index+= 4;
-    let VDOPPixelsLocations=[];
-    let VDOPValues=[];
-    while (arrText[index] !== 'end') {
-        document.getElementById('PanelVDOP').style.display = "block";
-        let helper =[]
-        for (let i = 0; i < 4; i++) {
-
-            let loc = [parseFloat(arrText[index]) ,parseFloat(arrText[index+1])];
-            //alert(loc+' '+arrText[index]+' '+arrText[index+1])
-            helper.push(loc);
-
-            index+=2;
-        }
-        VDOPPixelsLocations.push(helper);
-        VDOPValues.push(arrText[index])
         index++;
+        counter = 1;
+        //var element= document.getElementById('stationTable');
+        while (arrText[index] !== 'end') {
+            arrHelper = [];
+            for (let i = 0; i < 2; i++) {
+                arrHelper.push(arrText[index])
+                index++;
+            }
+            let loc = new Microsoft.Maps.Location(arrHelper[0], arrHelper[1]);
+            mapModule.addVertex(loc, changeVertexInTable)
+            var table = document.getElementById("vertexTable");
+            var newRow = table.rows.length;
+            var content = [counter, arrHelper[0], arrHelper[1]];
+            addNewRowToTable("vertexTable", newRow, content,
+                '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
+                '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>');
+            counter++;
+        }
+
+        index++;
+        //var element= document.getElementById('stationTable');
+        while (arrText[index] !== 'end') {
+            arrHelper = [];
+            for (let i = 0; i < 3; i++) {
+                arrHelper.push(arrText[index])
+                index++;
+            }
+            let loc = new Microsoft.Maps.Location(arrHelper[0], arrHelper[1]);
+            mapModule.addCircle(loc, arrHelper[2], changeCircleInTable)
+            var content = [arrHelper[0], arrHelper[1], arrHelper[2]];
+            addNewRowToTable("circleOfInterest", 2, content,
+                '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
+                '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
+        }
+        index++;
+        document.getElementById('latitudeResolutionInput').value = arrText[index];
+        index++;
+        document.getElementById('longitudeResolutionInput').value = arrText[index];
+        index++;
+        document.getElementById('altitudeInput').value = arrText[index];
+        index++;
+        document.getElementById('selectStationList').value = arrText[index];
+
+
+        index++;
+        document.getElementById('polygonCheckBox').checked = (arrText[index] == 'true');
+
+        togglePolygon(document.getElementById('polygonCheckBox'));
+        index++;
+        mapModule.setCenter(arrText[index + 1], arrText[index + 2]);
+        index += 4;
+        let VDOPPixelsLocations = [];
+        let VDOPValues = [];
+        while (arrText[index] !== 'end') {
+            document.getElementById('PanelVDOP').style.display = "block";
+            let helper = []
+            for (let i = 0; i < 4; i++) {
+
+                let loc = [parseFloat(arrText[index]), parseFloat(arrText[index + 1])];
+                //alert(loc+' '+arrText[index]+' '+arrText[index+1])
+                helper.push(loc);
+
+                index += 2;
+            }
+            VDOPPixelsLocations.push(helper);
+            VDOPValues.push(arrText[index])
+            index++;
+        }
+        mapModule.createPixelsFromData(VDOPPixelsLocations, VDOPValues);
     }
-    mapModule.createPixelsFromData(VDOPPixelsLocations,VDOPValues);
+    catch (e){
+        alert('There is something wrong with save.')
+    }
 
 }
 

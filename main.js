@@ -7,138 +7,52 @@ const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
 let win;
-
+var savePath =null;
 
 const template = [
     {
       label: 'File',
       submenu: [
           {
-              label: 'save',
-              click(item, focusedWindow) {
-                  dialog.showSaveDialog({
-                      title: 'Select the File Path to save',
-                      defaultPath: path.join(__dirname, '../assets/sample.txt'),
-                      // defaultPath: path.join(__dirname, '../assets/'),
-                      buttonLabel: 'Save',
-                      // Restricting the user to only Text Files.
-                      filters: [
-                          {
-                              name: 'Text Files',
-                              extensions: ['txt']
-                          }, ],
-                      properties: []
-                  }).then(file => {
-                      // Stating whether dialog operation was cancelled or not.
-                      console.log(file.canceled);
-                      if (!file.canceled) {
-                          console.log(file.filePath.toString());
-                          win.webContents.send("fromMain", ['save',file.filePath.toString()]);
-                          // Creating and Writing to the sample.txt file
-                          //fs.writeFile(file.filePath.toString(),
-                          //    'This is a Sample File', function (err) {
-                          //        if (err) throw err;
-                          //        console.log('Saved!');
-                          //    });
-                      }
-                  }).catch(err => {
-                      console.log(err)
-                  });
-              }
-          },
-          {
-              label: 'load',
-              click(item, focusedWindow){
-                  if (process.platform !== 'darwin') {
-                      // Resolves to a Promise<Object>
-                      dialog.showOpenDialog({
-                          title: 'Select the File to be uploaded',
-                          defaultPath: path.join(__dirname, '../assets/'),
-                          buttonLabel: 'Upload',
-                          // Restricting the user to only Text Files.
-                          filters: [
-                              {
-                                  name: 'Text Files',
-                                  extensions: ['txt', 'docx']
-                              }, ],
-                          // Specifying the File Selector Property
-                          properties: ['openFile']
-                      }).then(file => {
-                          // Stating whether dialog operation was
-                          // cancelled or not.
-                          console.log(file.canceled);
-                          if (!file.canceled) {
-                              // Updating the GLOBAL filepath variable
-                              // to user-selected file.
-                              //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
-                              fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
-                                  // Do something with file contents
-                                  //for (let i=0;i<3;++i) data[i]+=data[i];
-                                  // Send result back to renderer process
-                                  if (err!=null) {
-                                      win.webContents.send("fromMain", ['error']);
-                                      return null;
-
-                                  }
-                                  //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-
-                                  win.webContents.send("fromMain", ['load',data]);
-
-
-                              });
-                          }
-                      }).catch(err => {
-                          console.log(err)
-                      });
-                  }
-                  else {
-                      // If the platform is 'darwin' (macOS)
-                      dialog.showOpenDialog({
-                          title: 'Select the File to be uploaded',
-                          defaultPath: path.join(__dirname, '../assets/'),
-                          buttonLabel: 'Upload',
-                          filters: [
-                              {
-                                  name: 'Text Files',
-                                  extensions: ['txt', 'docx']
-                              }, ],
-                          // Specifying the File Selector and Directory
-                          // Selector Property In macOS
-                          properties: ['openFile', 'openDirectory']
-                      }).then(file => {
-                          console.log(file.canceled);
-                          if (!file.canceled) {
-                              // Updating the GLOBAL filepath variable
-                              // to user-selected file.
-                              //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
-                              fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
-                                  // Do something with file contents
-                                  //for (let i=0;i<3;++i) data[i]+=data[i];
-                                  // Send result back to renderer process
-                                  if (err!=null) {
-                                      win.webContents.send("fromMain", ['error']);
-                                      return null;
-
-                                  }
-                                  //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-
-                                  win.webContents.send("fromMain", ['load',data]);
-
-
-                              });
-                          }
-                      }).catch(err => {
-                          console.log(err)
-                      });
-                  }
-              }
-          },
-          {
-              label:'clear',
-              click(item, focusedWindow){
+              label:'New',
+              accelerator: 'Ctrl+N',
+              click(){
                   win.webContents.send("fromMain", ['clear']);
+                  savePath =null;
               }
-          }
+
+          },
+          {
+              label: 'Open',
+              accelerator: 'Ctrl+O',
+              click(){
+                  operFile();
+              }
+          },
+          {
+              label: 'Save',
+              accelerator: 'Ctrl+S',
+              click() {
+                  saveWithPath();
+              }
+          },
+          {
+              label: 'Save As',
+              accelerator: 'Ctrl+Shift+S',
+              click() {
+                saveAs(true );
+              }
+          },
+          {
+              label: 'Save Copy',
+              accelerator: 'Alt+Shift+S',
+              click() {
+                  saveAs(false);
+              }
+          },
+
+
+
       ]
     },
     {
@@ -185,12 +99,16 @@ const template = [
             },
             {
                 role: 'zoomout'
-            }/*,
-            {
+            },
+            /*{
                 type: 'separator'
             },
             {
-                role: 'togglefullscreen'
+
+                role: 'togglefullscreen',
+                click(){
+                    win.setMenuBarVisibility(false)
+                }
             }*/
         ]
     },
@@ -322,9 +240,6 @@ ipcMain.on("toMain", (event, args) => {
 
 
 app.on('window-all-closed', () => {
-  const fs = require('fs');
-  try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
-  catch(e) { alert('Failed to save the file !'); }
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -674,4 +589,129 @@ function generateColor(colorStart,colorEnd,colorCount){
 
     return saida;
 
+}
+
+function operFile(){
+    if (process.platform !== 'darwin') {
+        // Resolves to a Promise<Object>
+        dialog.showOpenDialog({
+            title: 'Select the File to be uploaded',
+            defaultPath: path.join(__dirname, '../assets/'),
+            buttonLabel: 'Upload',
+            // Restricting the user to only Text Files.
+            filters: [
+                {
+                    extensions: ['mlat']
+                }, ],
+            // Specifying the File Selector Property
+            properties: ['openFile']
+        }).then(file => {
+            // Stating whether dialog operation was
+            // cancelled or not.
+            console.log(file.canceled);
+            if (!file.canceled) {
+                // Updating the GLOBAL filepath variable
+                // to user-selected file.
+                //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
+                savePath = file.filePaths[0];
+                fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
+                    // Do something with file contents
+                    //for (let i=0;i<3;++i) data[i]+=data[i];
+                    // Send result back to renderer process
+                    if (err!=null) {
+                        win.webContents.send("fromMain", ['error']);
+                        return null;
+
+                    }
+                    //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+
+                    win.webContents.send("fromMain", ['load',data]);
+
+
+                });
+            }
+        }).catch(err => {
+            console.log(err)
+        });
+    }
+    else {
+        // If the platform is 'darwin' (macOS)
+        dialog.showOpenDialog({
+            title: 'Select the File to be uploaded',
+            defaultPath: path.join(__dirname, '../assets/'),
+            buttonLabel: 'Upload',
+            filters: [
+                {
+                    extensions: ['mlat']
+                }, ],
+            // Specifying the File Selector and Directory
+            // Selector Property In macOS
+            properties: ['openFile', 'openDirectory']
+        }).then(file => {
+            console.log(file.canceled);
+            if (!file.canceled) {
+                // Updating the GLOBAL filepath variable
+                // to user-selected file.
+                //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
+                fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
+                    // Do something with file contents
+                    //for (let i=0;i<3;++i) data[i]+=data[i];
+                    // Send result back to renderer process
+                    if (err!=null) {
+                        win.webContents.send("fromMain", ['error']);
+                        return null;
+
+                    }
+                    //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+
+                    win.webContents.send("fromMain", ['load',data]);
+
+
+                });
+            }
+        }).catch(err => {
+            console.log(err)
+        });
+    }
+}
+
+function saveWithPath(){
+    if (savePath==null){
+        saveAs(true);
+    } else{
+        win.webContents.send("fromMain", ['save',savePath]);
+    }
+
+}
+
+function saveAs(ifChangeSavePath){
+    dialog.showSaveDialog({
+        title: 'Select the File Path to save',
+        defaultPath: path.join(__dirname, '../assets/sample.mlat'),
+        // defaultPath: path.join(__dirname, '../assets/'),
+        buttonLabel: 'Save',
+        // Restricting the user to only Text Files.
+        filters: [
+            {
+                //name: 'Text Files',
+                extensions: ['mlat']
+            }, ],
+        properties: []
+    }).then(file => {
+        // Stating whether dialog operation was cancelled or not.
+        console.log(file.canceled);
+        if (!file.canceled) {
+            console.log(file.filePath.toString());
+            if (ifChangeSavePath) savePath = file.filePath.toString();
+            win.webContents.send("fromMain", ['save',file.filePath.toString()]);
+            // Creating and Writing to the sample.txt file
+            //fs.writeFile(file.filePath.toString(),
+            //    'This is a Sample File', function (err) {
+            //        if (err) throw err;
+            //        console.log('Saved!');
+            //    });
+        }
+    }).catch(err => {
+        console.log(err)
+    });
 }
