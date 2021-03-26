@@ -58,6 +58,23 @@ const template = [
                   saveAs(false);
               }
           },
+          {
+              type: 'separator'
+          },
+          {
+              label: 'Load example 1',
+              accelerator: 'Ctrl+1',
+              click(){
+                  win.webContents.send("fromMain", ['Example',1]);
+              }
+          },
+          {
+              label: 'Load example 2',
+              accelerator: 'Ctrl+2',
+              click(){
+                  win.webContents.send("fromMain", ['Example',2]);
+              }
+          },
 
 
 

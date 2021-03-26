@@ -9,6 +9,7 @@ window.api.receive("fromMain", (data) => {
     else if (data[0]=='test') alert('test');
     else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
     else if (data[0]=='VDOPend') restoreVisuals();
+    else if (data[0]=='Example') loadTables(getExample(data[1]));
 });
 
 //Saving and loading
@@ -27,6 +28,7 @@ function addSavesToList(saves){
 }
 
 function restartMap(askFlag){
+    mapModule.clearVDOP();
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     let table = document.getElementById('stationTable');
     while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
@@ -82,7 +84,7 @@ function loadTables(text){
                 index++;
             }
             let loc = new Microsoft.Maps.Location(arrHelper[0], arrHelper[1]);
-            mapModule.addVertex(loc, changeVertexInTable)
+            mapModule.addVertex(loc, changeVertexInTable,false)
             var table = document.getElementById("vertexTable");
             var newRow = table.rows.length;
             var content = [counter, arrHelper[0], arrHelper[1]];
@@ -326,7 +328,7 @@ function addNewVertex(e){
         loc = new Microsoft.Maps.Location(lat,lon);
 
     }
-    let index = mapModule.addVertex(loc,function (e) { changeVertexInTable(e); });
+    let index = mapModule.addVertex(loc,changeVertexInTable,true);
 
     var content = [index+1,lat,lon ] ;
     addNewRowToTable("vertexTable",index+1,content,

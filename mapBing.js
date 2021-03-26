@@ -259,7 +259,7 @@ var mapModule = (function() {
             return null;
         }
         if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-        _clearVDOP();
+        clearVDOP();
         var newStationArray = [];
         if (_ifStationActive!=null){
             for (var i=0;i<_ifStationActive.length;++i){
@@ -334,7 +334,7 @@ var mapModule = (function() {
         getLocalizationMeasurmentError();
     }
 
-    function _clearVDOP(){
+    function clearVDOP(){
 
         for (var i=0;i<_VDOPPixels.length;++i){
             _MAP_REFERENCE.entities.remove(_VDOPPixels[i]);
@@ -547,14 +547,14 @@ var mapModule = (function() {
         _updateVertexPolygon();
     }
 
-    function addVertex(loc,func){
+    function addVertex(loc,func,isSmartFindingVertexFlag){
         var pin = new Microsoft.Maps.Pushpin(loc, {
             draggable:true,icon:'pin.png'
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeVertexPosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
         let index;
-        if (_vertexArray.length>2) {
+        if ((_vertexArray.length>2)&&(isSmartFindingVertexFlag)) {
             index = _findNewVertexIndex(pin);
             _vertexArray.splice(index, 0, pin);
             _renameVertexes(index-1);
@@ -681,7 +681,7 @@ var mapModule = (function() {
 
 
     function addCircle(loc,radius,func){
-        _clearVDOP();
+        clearVDOP();
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
         var pin = new Microsoft.Maps.Pushpin(loc, {
             title: 'circle',draggable:true,icon:'pin.png',subTitle:name2
@@ -704,7 +704,7 @@ var mapModule = (function() {
     }
 
     function deleteCircle(){
-        _clearVDOP();
+        clearVDOP();
         _MAP_REFERENCE.entities.remove(_circlePin);
         _circlePin = null
         _MAP_REFERENCE.entities.remove(_circlePolygon);
@@ -763,5 +763,6 @@ var mapModule = (function() {
         getVDOPPixels:getVDOPPixels,
         getVDOPValues:getVDOPValues,
         createPixelsFromData:createPixelsFromData,
+        clearVDOP:clearVDOP,
     };
 })();
