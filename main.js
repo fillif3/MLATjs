@@ -2,6 +2,7 @@ const { app, BrowserWindow,ipcMain,Menu,MenuItem ,dialog} = require('electron')
 const path = require("path");
 const fs = require("fs");
 const math = require("mathjs")
+const u2f = require('u2f')
 
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
@@ -166,6 +167,7 @@ function createWindow (isNotMain) {
         ipcMain.on('request-update-label-in-second-window', (event, arg) => {
             win.webContents.send('action-update-label', arg);
         });
+        win.setMenu(null);
         win.loadFile('index.html');
     } else{
         winHelper = new BrowserWindow({
@@ -230,6 +232,8 @@ ipcMain.on("toMain", (event, args) => {
         stopFlag=true;
     } else if  (args[0]=='clearSavePath'){
         savePath =null;
+    }else if  (args[0]=='setMenu'){
+        win.setMenu(menu);
     }
 
 });

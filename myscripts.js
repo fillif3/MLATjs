@@ -210,8 +210,13 @@ function saveTables(){
 }
 // onload
 
-function GetMap()
+function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
 {
+    if (!confirm('Do you have a key?')) window.api.send("toMain", ['exit']);
+    else  {
+        if (!getKey()) window.api.send("toMain", ['exit']);
+        window.api.send("toMain", ['setMenu']);
+    }
     try {
         var map = new Microsoft.Maps.Map('#myMap')
     }
@@ -226,6 +231,10 @@ function GetMap()
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
+}
+
+function getKey(){ //TODO
+    return true;
 }
 
 function checkConnection()
