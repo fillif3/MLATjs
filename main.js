@@ -7,6 +7,7 @@ const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
 let win;
+let winHelper;
 let savePath =null;
 
 const template = [
@@ -20,13 +21,12 @@ const template = [
                   win.webContents.send("fromMain", ['clear']);
                   savePath =null;
               }
-
           },
           {
               label: 'Open',
               accelerator: 'Ctrl+O',
               click(){
-                  operFile();
+                  openFile();
               }
           },
           {
@@ -129,8 +129,17 @@ const template = [
         role: 'help',
         submenu: [
             {
-                label: 'Learn More'
-            }
+                label: 'Learn More',
+                click() {
+                    createWindow(true);
+                }
+            },
+            {
+                label: 'License',
+                click() {
+                    createWindow(true);
+                }
+            },
         ]
     }
 ]
@@ -140,55 +149,46 @@ Menu.setApplicationMenu(menu)
 
 let stopFlag;
 
-function createWindow () {
-    win = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    title: "Localization measurnment error - accuracy",
-        autoHideMenuBar: false,
-    webPreferences: {
-      nodeIntegration: true,
-      preload: path.join(__dirname, "preload.js")
+function createWindow (isNotMain) {
+    if (!isNotMain) {
+        win = new BrowserWindow({
+            width: 1200,
+            height: 800,
+            title: "Localization measurnment error - accuracy",
+            autoHideMenuBar: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: path.join(__dirname, "preload.js")
+            }
+        })
+
+        win.maximize();
+        ipcMain.on('request-update-label-in-second-window', (event, arg) => {
+            win.webContents.send('action-update-label', arg);
+        });
+        win.loadFile('index.html');
+    } else{
+        winHelper = new BrowserWindow({
+            width: 1200,
+            height: 800,
+            title: "Help",
+        })
+        winHelper.loadFile('LICENSES.chromium.html');
+        winHelper.setMenu(null);
     }
-
-
-
-  })
-
-    win.maximize();
-
-  //win.webContents.openDevTools()
-
-  ipcMain.on('request-update-label-in-second-window', (event, arg) => {
-    // Request to update the label in the renderer process of the second window
-    win.webContents.send('action-update-label', arg);
-  });
-
-  win.loadFile('index.html');
-
-
 }
 
 app.whenReady().then(createWindow)
 
 
 ipcMain.on("toMain", (event, args) => {
-    //alert("The file has been succesfully saved");
     if (args[0]=='load') {
         fs.readFile(args[1], 'utf8', (err, data) => {
-            // Do something with file contents
-            //for (let i=0;i<3;++i) data[i]+=data[i];
-            // Send result back to renderer process
             if (err!=null) {
                 win.webContents.send("fromMain", ['error']);
                 return null;
-
             }
-            //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-
             win.webContents.send("fromMain", ['load',data]);
-
-
         });
     } else if (args[0]=='save'){
         console.log(args[1],args[2])
@@ -196,15 +196,12 @@ ipcMain.on("toMain", (event, args) => {
             console.log('save')
            if (err!=null) {
                console.log('saveerr')
-                //alert("An error ocurred updating the file" + err.message);
                win.webContents.send("fromMain", ['error']);
                return null;
 
            }
             console.log('save')
         });
-       // alert("The file has been succesfully saved");
-
     } else if (args[0]=='check'){
         fs.readdir('saves/', (err, files) => {
             if (err!=null){
@@ -213,7 +210,6 @@ ipcMain.on("toMain", (event, args) => {
             }
             win.webContents.send("fromMain", ['check',files]);
         });
-        // alert("The file has been succesfully saved");
 
     } else if (args[0]=='delete'){
         try {
@@ -224,8 +220,6 @@ ipcMain.on("toMain", (event, args) => {
         }
     } else if (args[0]=='exit'){
         app.quit()
-    } else if (args[0]=='test'){
-        win.webContents.send("fromMain", ['test']);
     } else if (args[0]=='VDOP'){
         let currentLatitude= args[2].get('min_latitude');
         console.log(Date.now(),'start VDOP');
@@ -239,24 +233,21 @@ ipcMain.on("toMain", (event, args) => {
     }
 
 });
-
-
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
+    createWindow(false)
   }
 })
 
+// Computing VDOP
+
 function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
-
     let currentLongitude= edges.get('min_longitude');
-
     let locataionArrayArray = [];
     let VDOPArray=[]
     while (currentLongitude < edges.get('max_longitude')){
@@ -266,17 +257,10 @@ function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latit
             //let color = getColor(VDOP)
             locataionArrayArray.push(locationArray);
             VDOPArray.push(VDOP);
-
-
         }
-
-
         currentLongitude += longitudePrecision;
     }
-
     win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
-    //var waitTill = new Date(new Date().getTime() + 100);
-    //while(waitTill > new Date()){}
     currentLatitude += latitudePrecision;
 
 
@@ -288,38 +272,26 @@ function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latit
         win.webContents.send("fromMain", ['VDOPend']);
     }
 }
-
 function getColor(val){
-    //console.log(value);
     var value = val*4;
     var bins = 60;
     if (value>(bins*2+1)) {return 'black';}
     var min = "00FF00";
     var half = "0000FF";
     var max = "FF0000";
-
     value= Math.floor(value);
-    //console.log(value);
-
     if (value >bins){
         value-=bins;
         value--;
-
         var tmp = generateColor(max,half,bins);
-        //console.log(tmp[value]);
-        //throw 'kniec';
         return '#'+tmp[value];
     } else{
         value--;
         var tmp = generateColor(half,min,bins);
-        //console.log(tmp[value]);
-        //throw 'kniec';
+
         return '#'+tmp[value];
     }
-
-
 }
-
 function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfInterest){
     if (isCircle){
         const meter_per_lat = 111320;
@@ -333,10 +305,7 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
         var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
         var minY = Math.min(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
         if ((longitude>minY)&&(longitude<maxY)){
-            //console.log('---------');
-            //console.log(longitude);
-            //console.log(locationArray[i-1].longitude);
-            //console.log(locationArray[i].longitude);
+
             var firstPartOfLine = Math.abs(polygonOfInterest[i-1].get('lon')-longitude)
             var secondPartOfLine = Math.abs(polygonOfInterest[i].get('lon')-longitude)
             var division = firstPartOfLine/(firstPartOfLine+secondPartOfLine);
@@ -353,7 +322,6 @@ function getPixelLocationArray(latitude, longitude, latitudePrecision, longitude
     locationsArray.push([latitude+0.5*latitudePrecision,longitude-0.5*longitudePrecision]);
     locationsArray.push([latitude+0.5*latitudePrecision,longitude+0.5*longitudePrecision]);
     locationsArray.push([latitude-0.5*latitudePrecision,longitude+0.5*longitudePrecision]);
-    //console.log(locationsArray);
     return locationsArray;
 }
 
@@ -361,10 +329,8 @@ function computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, ba
     var position = [0,0,0];
     var anchors=[];
     for (var i=0;i<stationLocations.length;++i){
-        //throw 'Parameter is not a number!';
         anchors.push(_geodetic2enu(stationLocations[i][0],stationLocations[i][1],0,currentLatitude,currentLongitude,altitude));
     }
-
     var VDOP = _computeSingleVDOP(anchors,position,base_station);
     return VDOP
 
@@ -377,59 +343,33 @@ function _computeSingleVDOP(anchors,position,base){
         for (let i=0;i<anchors.length;i++){
             new_bases.push(i);
         }
-
     } else {new_bases = [base];}
-
     var minVDOP = Number.MAX_VALUE;
-
     for (let i=0;i<new_bases.length;i++) {
-
         var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
         anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
         anchors[0]=helper;
-
-        //console.log(new_bases);
-        //console.log(anchors);
-        //throw 'koniec';
-        //console.log(anchors);
-        //console.log(position);
         var Jacobian = _computeJacobian2dot5D(anchors, position);
-        //console.log(Jacobian);
         var Q = _compute_Q(anchors.length - 1);
-        //console.log(Q,'Q');
-        //try{
-        //console.log(anchors)
-        //console.log(position)
         try {
             var transposed_Jacobian = math.transpose(Jacobian);
-            //console.log(JSON.parse(JSON.stringify(transposed_Jacobian)),'transposed_Jacobian');
-            var equation = math.multiply(transposed_Jacobian, Jacobian);//np.dot(tran_J,J)
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq2');
-            equation = math.inv(equation);//np.linalg.inv(equation)
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq3');
-            equation = math.multiply(equation, transposed_Jacobian);//np.dot(equation,tran_J)
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq4');
-            equation = math.multiply(equation, Q);//np.dot(equation, Q)
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq5');
-            equation = math.multiply(equation, Jacobian);//np.dot(equation, J)
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq6');
-            equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));//np.dot(equation, np.linalg.inv(np.dot(tran_J,J)))
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq7');
-            //throw "koniec";
-            //equation = Math.sqrt(equation._data[0][0]+equation._data[1][1]);
-            //console.log(JSON.parse(JSON.stringify(equation)),'eq7');
-            //throw "koniec";
+            var equation = math.multiply(transposed_Jacobian, Jacobian);
+            equation = math.inv(equation);
+            equation = math.multiply(equation, transposed_Jacobian);
+            equation = math.multiply(equation, Q);
+            equation = math.multiply(equation, Jacobian);
+            equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));
             let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
             if (out < minVDOP) minVDOP = out;
 
         }
-            //}
         catch (e) {
-            //continue;
         }
     }
     return minVDOP;
 }
+
+// Algebra
 
 function _compute_Q(size){
     return math.add(math.identity(size),math.ones(size,size));
@@ -437,18 +377,13 @@ function _compute_Q(size){
 
 function _create_array2D(size1,size2){
     var arr=[];
-    //console.log(arr);
-    //throw "koniec";
-    //console.log('-------');
     for (var i=0;i<size1;++i){
-        //console.log(arr);
         var arrHelper=[];
         for (var j=0;j<size2;++j){
             arrHelper.push(0);
 
         }
         arr.push(arrHelper);
-
     }
     return arr;
 }
@@ -456,44 +391,23 @@ function _create_array2D(size1,size2){
 function _computeJacobian2dot5D(anchors,position){
 
     var jacobian = _create_array2D(anchors.length-1,2);
-    //console.log('-------');
-    //console.log(anchors,'anchors');
-    //console.log(jacobian);
-    //console.log(position,'position');
-    //console.log(math.subset(anchors,math.index(0, [0, 1,2])))
-    //console.log(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]))
+
     var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
-    //console.log(distToReference,'distToReference');
-    //refence_derievative = (position[0:2] - anchors[-1][0:2]) / dist_to_refernce
-    //console.log(math.subset(position,math.index([0, 1])));
-    //console.log(math.subset(anchors,math.index(0, [0, 1]))[0]);
+
     var refence_derievative = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
         math.subset(anchors,math.index(0, [0, 1]))[0]),1/distToReference);
-    //console.log(refence_derievative,'refence_derievative');
-    //console.log(refence_derievative);
-    for (var i=0;i<(anchors.length-1);++i){
-        //console.log(i);
 
+    for (var i=0;i<(anchors.length-1);++i){
         var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i+1, [0, 1,2]))[0]));
-        //console.log();
-        //console.log()
         var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
             math.subset(anchors,math.index(i+1, [0, 1]))[0]),1/distToCurrent);
-        //console.log(JSON.parse(JSON.stringify(distToCurrent)),'distToCurrent');
-        //console.log(JSON.parse(JSON.stringify(gradient)),'gradient');
         jacobian[i][0]=gradient[0]-refence_derievative[0];
         jacobian[i][1]=gradient[1]-refence_derievative[1];
-        //console.log(jacobian);
-        //console.log(gradient);
-        //throw "koniec";
-
     }
-    //console.log(anchors,position);
-    //console.log(jacobian);
-    //throw "koniec";
     return jacobian;
 }
 
+// Geodetic
 
 function _geodetic2enu(lat, lon, h, lat0, lon0, h0) {
     var [x1, y1, z1] = _geodetic2ecef(lat, lon, h);
@@ -534,6 +448,8 @@ function _degrees_to_radians(degrees)
     var pi = Math.PI;
     return degrees * (pi/180);
 }
+
+// Colors
 
 function hex (c) {
     var s = "0123456789abcdef";
@@ -593,7 +509,9 @@ function generateColor(colorStart,colorEnd,colorCount){
 
 }
 
-function operFile(){
+// Saving/Loading files
+
+function openFile(){
     if (process.platform !== 'darwin') {
         // Resolves to a Promise<Object>
         dialog.showOpenDialog({
@@ -625,8 +543,6 @@ function operFile(){
                         return null;
 
                     }
-                    //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-
                     win.webContents.send("fromMain", ['load',data]);
 
 
@@ -664,8 +580,6 @@ function operFile(){
                         return null;
 
                     }
-                    //var obj = JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-
                     win.webContents.send("fromMain", ['load',data]);
 
 
@@ -690,28 +604,18 @@ function saveAs(ifChangeSavePath){
     dialog.showSaveDialog({
         title: 'Select the File Path to save',
         defaultPath: path.join(__dirname, '../assets/sample.mlat'),
-        // defaultPath: path.join(__dirname, '../assets/'),
         buttonLabel: 'Save',
-        // Restricting the user to only Text Files.
         filters: [
             {
-                //name: 'Text Files',
                 extensions: ['mlat']
             }, ],
         properties: []
     }).then(file => {
-        // Stating whether dialog operation was cancelled or not.
         console.log(file.canceled);
         if (!file.canceled) {
             console.log(file.filePath.toString());
             if (ifChangeSavePath) savePath = file.filePath.toString();
             win.webContents.send("fromMain", ['save',file.filePath.toString()]);
-            // Creating and Writing to the sample.txt file
-            //fs.writeFile(file.filePath.toString(),
-            //    'This is a Sample File', function (err) {
-            //        if (err) throw err;
-            //        console.log('Saved!');
-            //    });
         }
     }).catch(err => {
         console.log(err)

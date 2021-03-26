@@ -40,46 +40,6 @@ var mapModule = (function() {
     var _blockFunction=null
     var _endVDOPComputation=false;
 
-
-    function createPixelsFromData(pixelsLocations,values) {
-        for (let i=0;i<pixelsLocations.length;++i){
-            try {
-                let locs=[];
-                for (var j=0;j<4;++j){
-                    let loc = new Microsoft.Maps.Location(pixelsLocations[i][j][0], pixelsLocations[i][j][1]);
-                    locs.push(loc);
-                }
-
-                let color = _getColor(values[i])
-                //alert(loc+' '+pixelsLocations[i]+' '+values[i]+' '+pixelsLocations.length+' '+values.length)
-                let pixel = new Microsoft.Maps.Polygon(locs, {strokeThickness: 0, fillColor: color});
-                Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
-                    _showVDOP(e);
-                });
-                _MAP_REFERENCE.entities.push(pixel);
-                _VDOPPixels.push(pixel);
-                _VDOPValues.push(values[i]);
-            }
-            catch (e){
-
-            }
-
-        }
-    }
-
-    function getVDOPPixels(){
-        return _VDOPPixels;
-    }
-
-    function getVDOPValues(){
-        return _VDOPValues;
-    }
-
-    function checkIfMapIsSet(){
-        if (_MAP_REFERENCE== null) return false;
-        return true;
-    }
-
     // Setting variables
 
     function getCenter(){
@@ -97,9 +57,7 @@ var mapModule = (function() {
     }
 
     function setOutputId(val){
-
         _outputId=val;
-        //throw 'qweqwe';
     }
 
 
@@ -163,47 +121,61 @@ var mapModule = (function() {
 
     function _create_array2D(size1,size2){
         var arr=[];
-        //throw "koniec";
         for (var i=0;i<size1;++i){
             var arrHelper=[];
             for (var j=0;j<size2;++j){
                 arrHelper.push(0);
-
             }
             arr.push(arrHelper);
-
         }
         return arr;
     }
 
     function _computeJacobian2dot5D(anchors,position){
-
         var jacobian = _create_array2D(anchors.length-1,2);
-
         var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
-        //refence_derievative = (position[0:2] - anchors[-1][0:2]) / dist_to_refernce
-
         var refence_derievative = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
             math.subset(anchors,math.index(0, [0, 1]))[0]),1/distToReference);
-
         for (var i=0;i<(anchors.length-1);++i){
-
             var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i+1, [0, 1,2]))[0]));
-
             var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
                 math.subset(anchors,math.index(i+1, [0, 1]))[0]),1/distToCurrent);
-
             jacobian[i][0]=gradient[0]-refence_derievative[0];
             jacobian[i][1]=gradient[1]-refence_derievative[1];
-
-            //throw "koniec";
-
         }
-
         return jacobian;
     }
 
     // Computing VDOP
+    function createPixelsFromData(pixelsLocations,values) {
+        for (let i=0;i<pixelsLocations.length;++i){
+            try {
+                let locs=[];
+                for (var j=0;j<4;++j){
+                    let loc = new Microsoft.Maps.Location(pixelsLocations[i][j][0], pixelsLocations[i][j][1]);
+                    locs.push(loc);
+                }
+                let color = _getColor(values[i])
+                let pixel = new Microsoft.Maps.Polygon(locs, {strokeThickness: 0, fillColor: color});
+                Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
+                    _showVDOP(e);
+                });
+                _MAP_REFERENCE.entities.push(pixel);
+                _VDOPPixels.push(pixel);
+                _VDOPValues.push(values[i]);
+            }
+            catch (e){
+            }
+        }
+    }
+
+    function getVDOPPixels(){
+        return _VDOPPixels;
+    }
+
+    function getVDOPValues(){
+        return _VDOPValues;
+    }
 
     function _computeSingleVDOP(anchors,position,base){
         var new_bases;
@@ -212,21 +184,14 @@ var mapModule = (function() {
             for (let i=0;i<anchors.length;i++){
                 new_bases.push(i);
             }
-
         } else {new_bases = [base];}
-
         var minVDOP = Number.MAX_VALUE;
-
         for (let i=0;i<new_bases.length;i++) {
-
             var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
             anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
             anchors[0]=helper;
-
-
             var Jacobian = _computeJacobian2dot5D(anchors, position);
             var Q = _compute_Q(anchors.length - 1);
-
             try {
                 var transposed_Jacobian = math.transpose(Jacobian);
                 var equation = math.multiply(transposed_Jacobian, Jacobian);//np.dot(tran_J,J)
@@ -238,15 +203,12 @@ var mapModule = (function() {
 
                 let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
                 if (out < minVDOP) minVDOP = out;
-
             }
-                //}
             catch (e) {
             }
         }
         return minVDOP;
     }
-
 
     function _computeColorBasedOnVDOP(currentLatitude,currentLongitude,altitude,base_station,newStationArray){
         var position = [0,0,0];
@@ -255,11 +217,9 @@ var mapModule = (function() {
             var loc = newStationArray[i].getLocation();
             anchors.push(_geodetic2enu(loc.latitude,loc.longitude,_stationAltitudeArray[i],currentLatitude,currentLongitude,altitude));
         }
-
         var VDOP = _computeSingleVDOP(anchors,position,base_station);
         _VDOPValues.push(VDOP);
         return _getColor(VDOP);
-
     }
 
     function _getPolygonOfInterest(isCircle){
@@ -298,33 +258,22 @@ var mapModule = (function() {
             alert('There is no circle. You need to choose center of circle');
             return null;
         }
-
         if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-
         _clearVDOP();
-
         var newStationArray = [];
         if (_ifStationActive!=null){
             for (var i=0;i<_ifStationActive.length;++i){
                 if (_ifStationActive[i]) newStationArray.push(_stationArray[i]);
             }
         } else newStationArray = _stationArray;
-
         if (timeout ===4) _step = 30;
         else _step = 5;
-        base_station--;
-
-
-
-
-
+        base_station--; //The user's input starts from one but indexing start from 0
         if (newStationArray.length<3) {
             alert('There are less then 3 active stations. You need at least 3 active stations to compute measurement errors');
             return null;
         }
         if (_blockFunction!=null) _blockFunction();
-
-
         _edges = _getPolygonEdgeValues(isCircle);
         let stationLocations=[]
         for (let i=0;i<newStationArray.length;i++){
@@ -336,16 +285,9 @@ var mapModule = (function() {
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
         window.api.send("toMain", ['VDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
             _longitudePrecision,polygonOfIntrest]);
-
         _currentLatitude= _edges.get('min_latitude');
-        //var n = performance.now();
-
-        //calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout);
-
-        // For debigging
         if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
         if (_circlePolygon!=null) _circlePolygon.setOptions({visible:false});
-        //if (_clearFunction!=null) _clearFunction();
         return 0;
     }
 
@@ -354,13 +296,9 @@ var mapModule = (function() {
         for (let i=0;i<_step;++i) {
             _currentLongitude= _edges.get('min_longitude');
             while (_currentLongitude < _edges.get('max_longitude')) {
-
                 if (_checkIfPointInsidePolygon(_currentLatitude, _currentLongitude, isCircle)) {
                     var locationArray = _getPixelLocationArray(_currentLatitude, _currentLongitude, _latitudePrecision, _longitudePrecision);
-
-
                     var color = _computeColorBasedOnVDOP(_currentLatitude, _currentLongitude, altitude, base_station, newStationArray);
-
                     var pixel = new Microsoft.Maps.Polygon(locationArray, {strokeThickness: 0, fillColor: color});
                     Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
                         _showVDOP(e);
@@ -372,23 +310,17 @@ var mapModule = (function() {
             }
             _currentLatitude += _latitudePrecision;
         }
-
-
         if ((_currentLatitude<_edges.get('max_latitude'))&&(!_endVDOPComputation)) {
             setTimeout(function() {
                 calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle);
             }, timeout)
         }
-
         else{
             if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
             if (_circlePolygon!=null) _circlePolygon.setOptions({visible:false});
             _endTimeForDebugging = performance.now();
             if (_clearFunction!=null) _clearFunction();
-
         }
-
-
     }
 
     function _showVDOP(e){
@@ -398,7 +330,6 @@ var mapModule = (function() {
                 break;
             }
         }
-
         if (_outputId!=='') document.getElementById(_outputId).value = _VDOPValues[i].toString().slice(0,7);
         getLocalizationMeasurmentError();
     }
@@ -427,18 +358,13 @@ var mapModule = (function() {
         if (value >bins){
             value-=bins;
             value--;
-
             var tmp = generateColor(max,half,bins);
-
             return '#'+tmp[value];
         } else{
             value--;
             var tmp = generateColor(half,min,bins);
-
             return '#'+tmp[value];
         }
-
-
     }
 
 
@@ -481,7 +407,6 @@ var mapModule = (function() {
         if ((_vertexPolygon == null)&&(!isCircle)) return null;
         if ((_circlePolygon==null)&&(isCircle)) return null;
         if (isCircle){
-
             var loc =_circlePin.getLocation();
             const meter_per_lon = 40075000*Math.cos(3.14*loc.latitude/180)/360;
             var edges = new Map();
@@ -492,7 +417,6 @@ var mapModule = (function() {
             return  edges;
         }
         var locations = _vertexPolygon.getLocations();
-
         var edges = new Map();
         edges.set('min_latitude',locations[0].latitude);
         edges.set('max_latitude',locations[0].latitude);
@@ -515,7 +439,6 @@ var mapModule = (function() {
             _MAP_REFERENCE.entities.push(polygon);
             _vertexPolygon = polygon
         } else _vertexPolygon=null;
-
     }
 
 
@@ -529,7 +452,6 @@ var mapModule = (function() {
         locationsArray.push(loc);
         loc = new Microsoft.Maps.Location(latitude-0.5*latitudePrecision,longitude+0.5*longitudePrecision);
         locationsArray.push(loc);
-
         return locationsArray;
     }
 
@@ -541,10 +463,7 @@ var mapModule = (function() {
             retArr.push(pin.getLocation());
         }
         return retArr;
-
     }
-
-
 
     function getIndexOfStation(pin){
         for (var i=0;i<_stationArray.length;++i){
@@ -567,7 +486,6 @@ var mapModule = (function() {
         else color = 'red';
         var newPin = new Microsoft.Maps.Pushpin(loc, {
             title: name, color:color,draggable:true,subTitle:name2
-            // subTitle: number.toString()
         });
         _MAP_REFERENCE.entities.push(newPin);
         Microsoft.Maps.Events.addHandler(newPin,'dragend',  function (e) { _changeStationPosition(e); } );
@@ -577,7 +495,6 @@ var mapModule = (function() {
         _MAP_REFERENCE.entities.remove(oldPin);
         _stationArray.splice(index,1,newPin);
         _stationAltitudeArray.splice(index,1,alt);
-
     }
 
     function addStation(loc,alt,name,func){
@@ -631,29 +548,20 @@ var mapModule = (function() {
     }
 
     function addVertex(loc,func){
-        //var number = _vertexArray.length+1
-
-
         var pin = new Microsoft.Maps.Pushpin(loc, {
             draggable:true,icon:'pin.png'
-            // subTitle: number.toString()
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeVertexPosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
-
         let index;
-
-
         if (_vertexArray.length>2) {
             index = _findNewVertexIndex(pin);
             _vertexArray.splice(index, 0, pin);
             _renameVertexes(index-1);
-            //_renameVertexes(index-1);
         } else {
             index = _vertexArray.length;
             _vertexArray.push(pin);
         }
-
         var name = 'Vertex ' + (index+1);
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
 
@@ -665,7 +573,6 @@ var mapModule = (function() {
 
     function _renameVertexes(index){
         for (let i=index;i<_vertexArray.length;++i){
-            //alert(i);
             _vertexArray[i].setOptions({title: 'Vertex '+(i+1)});
         }
     }
@@ -682,12 +589,10 @@ var mapModule = (function() {
             }
         }
         return index;
-        //return minDistance;
     }
 
     function _computeDistanceToLineOfPolygon(loc,currentIndex){
         let nextIndex = currentIndex+1;
-
         if (nextIndex == _vertexArray.length) nextIndex=0;
         let locVertex1 = _vertexArray[currentIndex].getLocation()
         let locVertex2 = _vertexArray[nextIndex].getLocation()
@@ -695,22 +600,16 @@ var mapModule = (function() {
         let polygonPoint2XYZ= _geodetic2enu(locVertex2.latitude,locVertex2.longitude,0,loc.latitude,loc.longitude,0);
         let deltaPolygonPointXYZ = math.subtract(polygonPoint1XYZ,polygonPoint2XYZ);
         let segmentLength = math.norm(deltaPolygonPointXYZ,2);
-        //let deltaPolygonPointXYZUnit = math.divide(deltaPolygonPointXYZ,segmentLength);
         let crossPointOnSegment = math.divide(math.multiply(polygonPoint1XYZ,deltaPolygonPointXYZ),segmentLength**2);
         let shortestDistance;
         if (crossPointOnSegment<0){
-            //alert('lewo')
             shortestDistance=math.norm(polygonPoint1XYZ,2);
         } else if (crossPointOnSegment>1){
-            //alert('prawo')
             shortestDistance=math.norm(polygonPoint2XYZ,2);
         } else{
-            //alert('środerk')
             shortestDistance = math.norm(math.subtract(polygonPoint1XYZ,math.multiply(crossPointOnSegment,deltaPolygonPointXYZ)),2)
         }
         return shortestDistance;
-
-
     }
 
     function deleteVertex(index){
@@ -741,8 +640,6 @@ var mapModule = (function() {
             _circlePolygon.setOptions({visible:flag});
             _circlePin.setOptions({visible:flag});
         }
-
-
     }
 
     function _calculateVertexesOfCircle(lat,lon,radius){
@@ -750,7 +647,6 @@ var mapModule = (function() {
         var vertexes=[]
         const meter_per_lon = 40075000*Math.cos(3.14*lat/180)/360;
         _MAP_REFERENCE.entities.remove(_circlePolygon);
-
         for (var i=0;i<30;++i){
             var x = radius*Math.cos(angle)/_meter_per_lat;
             var y = radius*Math.sin(angle)/meter_per_lon;
@@ -767,11 +663,8 @@ var mapModule = (function() {
     function addCircle(loc,radius,func){
         _clearVDOP();
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
-
-
         var pin = new Microsoft.Maps.Pushpin(loc, {
             title: 'circle',draggable:true,icon:'pin.png',subTitle:name2
-            // subTitle: number.toString()
         });
         Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { _changeCirclePosition(e); } );
         if (func!=null) Microsoft.Maps.Events.addHandler(pin,'dragend',  function (e) { func(e); } );
@@ -780,7 +673,6 @@ var mapModule = (function() {
         _circleRadius=radius;
         _circlePin=pin;
         _calculateVertexesOfCircle(loc.latitude,loc.longitude,radius);
-        //_updateVertexPolygon();
     }
 
     function _changeCirclePosition(e){
@@ -801,6 +693,11 @@ var mapModule = (function() {
 
     //  Map functions
 
+
+    function checkIfMapIsSet(){
+        return _MAP_REFERENCE != null;
+    }
+
     function setMap(reference) {
         _MAP_REFERENCE = reference;
     }
@@ -817,12 +714,6 @@ var mapModule = (function() {
             _handlers.delete(typeOfEvent);
         }
     }
-
-
-    //function getMap() {
-    //    return _MAP_REFERENCE;
-    //}
-
     return {
         addVertex:addVertex,
         setMap: setMap,

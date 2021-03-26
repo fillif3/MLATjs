@@ -1,6 +1,4 @@
-function testFunction(){
-    window.api.send("toMain", ['test']);
-}
+// Connection
 
 window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
@@ -12,6 +10,8 @@ window.api.receive("fromMain", (data) => {
     else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
     else if (data[0]=='VDOPend') restoreVisuals();
 });
+
+//Saving and loading
 
 function addSavesToList(saves){
     var list= document.getElementById("selectSaveList");
@@ -26,77 +26,6 @@ function addSavesToList(saves){
     })
 }
 
-function addFunction(){
-    let newSave = document.getElementById('saveName').value;
-    var list= document.getElementById("selectSaveList");
-    let opt = document.createElement('option');
-    opt.value = newSave;
-    opt.innerHTML = newSave;
-    if( /[^a-zA-Z0-9 _]/.test( newSave ) ) {
-        alert('Input is not alphanumeric');
-        return null;
-    }
-    if (list.length>50){
-        alert("You have more than 50 saves. Try deleting some before saving more.");
-        return null;
-    }
-    try {
-        let o = list.options[0];
-        for (let i = 0; i < list.length; ++i){
-            if (list.options[i].value == newSave){
-                alert("This save already exist");
-                return null;
-            }
-        }
-    }
-    catch (e){
-
-    }
-    list.appendChild(opt);
-    let path = 'saves/' + newSave+'.txt'
-
-    window.api.send("toMain", ['save',path,saveTables()]);
-}
-
-function checkSaves(){
-
-    //document.getElementById('blocker').style.display='block';
-    window.api.send("toMain", ['check']);
-}
-
-
-function loadFunction(){
-    if (window.confirm("Do you really want to load a file?\nUnsaved progress will be lost.")) {
-        //document.getElementById('blocker').style.display='block';
-        var list = document.getElementById("selectSaveList");
-        let path = 'saves/' + list.value + '.txt'
-
-        window.api.send("toMain", ['load', path]);
-    }
-}
-
-function deleteFunction(){
-    if (window.confirm("Do you really want to delete a file?")) {
-        var list= document.getElementById("selectSaveList");
-        let value = list.value
-        list.remove(list.selectedIndex);
-        let path = 'saves/'+value+'.txt'
-        window.api.send("toMain", ['delete',path,saveTables()]);
-    }
-
-
-}
-
-function saveFunction(){
-
-    //document.getElementById('blocker').style.display='block';
-    var list= document.getElementById("selectSaveList");
-    let path = 'saves/' + list.value+'.txt'
-    if (!window.confirm("Do you want to save? Current file is oging to be deleted.")) return null;
-
-    window.api.send("toMain", ['save',path,saveTables()]);
-}
-//deleteRowAndUpdateTable(cell,where)
 function restartMap(askFlag){
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     let table = document.getElementById('stationTable');
@@ -164,7 +93,6 @@ function loadTables(text){
         }
 
         index++;
-        //var element= document.getElementById('stationTable');
         while (arrText[index] !== 'end') {
             arrHelper = [];
             for (let i = 0; i < 3; i++) {
@@ -298,16 +226,6 @@ function GetMap()
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
-    //checkSaves();
-
-    //const fs = require('fs');
-    //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
-    //catch(e) { alert('Failed to save the file !'); }
-
-
-    //addEventToMap('Vertex');
-    //Microsoft.Maps.Events.addHandler(map, 'click', function (e) { addNewStation(e); });
-    //Add your post map load code here.
 }
 
 function checkConnection()
@@ -317,14 +235,6 @@ function checkConnection()
         window.api.send("toMain", ['exit']);
     }
 
-    //const fs = require('fs');
-    //try { fs.writeFileSync('myfile.txt', 'the text to write in the file', 'utf-8'); }
-    //catch(e) { alert('Failed to save the file !'); }
-
-
-    //addEventToMap('Vertex');
-    //Microsoft.Maps.Events.addHandler(map, 'click', function (e) { addNewStation(e); });
-    //Add your post map load code here.
 }
 
 function createGradientDiv(){
@@ -352,13 +262,6 @@ function createGradientDiv(){
     innerDiv.style.width = '3%';
     innerDiv.style.textAlign = 'center';
     motherDiv.appendChild(innerDiv);
-    //innerDiv.innerHTML = '31<';
-    //innerDiv.style.backgroundColor='black';
-    //innerDiv.style.color='white';
-    //innerDiv.style.float='left';
-    //innerDiv.style.width = '2.7%';
-    //innerDiv.style.textAlign = 'center';
-    //motherDiv.appendChild(innerDiv);
 }
 
 // button function
@@ -384,14 +287,9 @@ function calculateVDOP(){
         document.getElementById('selectStationList').value,
         !document.getElementById('polygonCheckBox').checked,4)
     if (result!=null) document.getElementById('PanelVDOP').style.display = "block";
-
-    //barDiv.style.display='none';
-
 }
 
 function addEventToMap(whichTable){
-    //if (typeOfEvent==="Station") Microsoft.Maps.Events.addHandler(mapModule.getMap(), 'click', function (e) { addNewStation(e); });
-    //if (typeOfEvent==="Vertex") Microsoft.Maps.Events.addHandler(mapModule.getMap(), 'click', function (e) { addNewVertex(e); });
     if (whichTable==="Station") mapModule.addHandlerMap('click', function (e) { addNewStation(e); });
     if (whichTable==="Vertex") mapModule.addHandlerMap('click', function (e) { addNewVertex(e); });
     if (whichTable==="Circle") mapModule.addHandlerMap('click', function (e) { addNewCircle(e); });
@@ -401,21 +299,15 @@ function addNewVertex(e){
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
-
-        //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
 
-        //mapModule.deleteHandler('click');
-        //var alt = document.getElementById('altInputPopUp').value;
     }
     else {
         var lat = document.getElementById('latInputPopUp').value;
-        // TO DO: add checking if it is a number
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
-        // TO DO: add checking if it is a number
         lon = parseFloat(lon);
         if (!doesArrayContainOnlyNumbers([lat,lon])){
             alert('The inputs must be numeric');
@@ -423,14 +315,9 @@ function addNewVertex(e){
         }
 
         loc = new Microsoft.Maps.Location(lat,lon);
-        //var alt = document.getElementById('altInputPopUp').value;
-        // TO DO: add checking if it is a number
-        //alt = parseFloat(alt);
 
     }
     let index = mapModule.addVertex(loc,function (e) { changeVertexInTable(e); });
-    //var table = document.getElementById("vertexTable");
-    //var newRow = table.rows.length;
 
     var content = [index+1,lat,lon ] ;
     addNewRowToTable("vertexTable",index+1,content,
@@ -451,27 +338,17 @@ function addNewCircle(e){
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
-
-        //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
         document.getElementById('PanelVDOP').style.display = "none";
-        //mapModule.deleteHandler('click');
-        //var alt = document.getElementById('altInputPopUp').value;
     }
     else {
         var lat = document.getElementById('latInputPopUp').value;
-        // TO DO: add checking if it is a number
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
-        // TO DO: add checking if it is a number
         lon = parseFloat(lon);
         loc = new Microsoft.Maps.Location(lat,lon);
-        //var alt = document.getElementById('altInputPopUp').value;
-        // TO DO: add checking if it is a number
-        //alt = parseFloat(alt);
-
     }
     mapModule.addCircle(loc,2000,changeCircleInTable);
     var table = document.getElementById("circleOfInterest");
@@ -485,14 +362,11 @@ function addNewCircle(e){
     if (newRow>2) table.rows[3].parentNode.removeChild(table.rows[2]);
 }
 
-
-
 function addNewStation(e){
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
 
-        //var location = new Microsoft.Maps.Location(loc.latitude, loc.longitude);
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
 
@@ -514,7 +388,6 @@ function addNewStation(e){
         }
 
         loc =new Microsoft.Maps.Location(lat,lon);
-        // TO DO: add checking if it is a number
 
 
 
@@ -565,7 +438,6 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
         cell = row.insertCell(content.length + 2);
         cell.innerHTML = buttonDescription2;
     }
-
 }
 
 function changeVertexInTable(e){
@@ -598,7 +470,6 @@ function changeCircleInTable(e){
 }
 
 function deleteRowAndUpdateTable(cell,where){
-
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
     var table = document.getElementById(tableId);
     var row = cell.parentNode.parentNode
@@ -628,8 +499,7 @@ function deleteRowAndUpdateTable(cell,where){
     if (where==='station') if (row.cells[5].firstChild.checked) removeStationFromList();
 }
 
-function editRowAndUpdateTable(cell){ //To Do
-
+function editRowAndUpdateTable(cell){
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
     var row = cell.parentNode.parentNode;
     if (tableId==="circleOfInterest"){
@@ -640,19 +510,16 @@ function editRowAndUpdateTable(cell){ //To Do
             alert('The inputs must be numeric');
             return null;
         }
-
         var loc = new Microsoft.Maps.Location(parseFloat(lat),parseFloat(lon));
         mapModule.addCircle(loc,radius,changeCircleInTable);
         document.getElementById('PanelVDOP').style.display = "none";
         return null;
     }
-
     var index = row.cells[0].innerHTML-1;
     var lat = row.cells[1].innerHTML;
     var lon = row.cells[2].innerHTML;
     if (tableId!="vertexTable") var alt = row.cells[3].innerHTML;
     else var alt = 0;
-
     if (!doesArrayContainOnlyNumbers([lat,lon,alt])){
         alert('The inputs must be numeric');
         return null;
@@ -660,12 +527,6 @@ function editRowAndUpdateTable(cell){ //To Do
     var name = row.cells[4].innerHTML;
     var loc = new Microsoft.Maps.Location(parseFloat(lat),parseFloat(lon));
     editPin(loc,index,tableId,alt,name);
-
-
-    // error -> need to find a way to get row and dleete it
-    //row_index = table.rows.indexOf(row)
-    //table.deleteRow(indexOfRow)
-
 }
 
 // List support functions
@@ -767,10 +628,6 @@ function getLocalizationMeasurmentError(){
 }
 
 function toggle(divId,button){
-    //div = document.getElementById(divId);
-
-    //if (div.style.display==="none") div.style.display="block";
-    //else div.style.display="none";
     if (button.innerHTML.slice(button.innerHTML.length-4,button.innerHTML.length)==='hide') button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
     else button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'hide';
     $('#'+divId).slideToggle("slow");
@@ -785,12 +642,10 @@ function togglePolygon(checkBox){
         button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
         $('#'+"circleOfInterestDiv").slideUp("slow");
         $('#'+"circleOfInterestHideDiv").slideUp("slow");
-        //$('#'+"polygonOfInterestDiv").slideDown("slow");
         $('#'+"polygonOfInterestHideButton").slideDown("slow");
         mapModule.vertexPolygonVisibility(true);
         mapModule.circlePolygonVisibility(false);
     } else {
-        //$('#'+"circleOfInterestDiv").slideDown("slow");
         $('#'+"circleOfInterestHideDiv").slideDown("slow");
         $('#'+"polygonOfInterestDiv").slideUp("slow");
         $('#'+"polygonOfInterestHideButton").slideUp("slow");
