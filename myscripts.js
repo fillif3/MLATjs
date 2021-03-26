@@ -90,7 +90,9 @@ function loadTables(text){
             var content = [counter, arrHelper[0], arrHelper[1]];
             addNewRowToTable("vertexTable", newRow, content,
                 '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
-                '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>');
+                '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',
+                ['<button type="button" onclick=moveVertexLeft(this,"Vertex") class="buttonSkip ">L</button>',
+                    '<button type="button" onclick=moveVertexRight(this,"Vertex") class="buttonSkip ">R</button>']);
             counter++;
         }
 
@@ -133,7 +135,6 @@ function loadTables(text){
             for (let i = 0; i < 4; i++) {
 
                 let loc = [parseFloat(arrText[index]), parseFloat(arrText[index + 1])];
-                //alert(loc+' '+arrText[index]+' '+arrText[index+1])
                 helper.push(loc);
 
                 index += 2;
@@ -333,7 +334,9 @@ function addNewVertex(e){
     var content = [index+1,lat,lon ] ;
     addNewRowToTable("vertexTable",index+1,content,
     '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
-        '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',null);
+        '<button type="button" onclick=deleteRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Delete</button>',
+        ['<button type="button" onclick=moveVertexLeft(this,"Vertex") class="buttonSkip ">L</button>',
+            '<button type="button" onclick=moveVertexRight(this,"Vertex") class="buttonSkip ">R</button>']);
     hideMassageWindow('lat_lon_alt');
     updateOrderNumberOfTable("vertexTable",1)
 }
@@ -442,12 +445,21 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
         cell = row.insertCell(content.length + 1);
         cell.innerHTML = buttonDescription2;
     } else{
-        cell = row.insertCell(content.length);
-        cell.innerHTML = checkBoxDescription;
-        cell = row.insertCell(content.length+1);
-        cell.innerHTML = buttonDescription;
-        cell = row.insertCell(content.length + 2);
-        cell.innerHTML = buttonDescription2;
+        if (idOfTable== 'stationTable') {
+            cell = row.insertCell(content.length);
+            cell.innerHTML = checkBoxDescription;
+            cell = row.insertCell(content.length + 1);
+            cell.innerHTML = buttonDescription;
+            cell = row.insertCell(content.length + 2);
+            cell.innerHTML = buttonDescription2;
+        } else if (idOfTable== 'vertexTable'){
+            cell = row.insertCell(content.length);
+            cell.innerHTML = buttonDescription;
+            cell = row.insertCell(content.length + 1);
+            cell.innerHTML = buttonDescription2;
+            cell = row.insertCell(content.length + 2);
+            cell.innerHTML = checkBoxDescription[0]+checkBoxDescription[1];
+        }
     }
 }
 
