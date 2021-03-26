@@ -341,6 +341,32 @@ function addNewVertex(e){
     updateOrderNumberOfTable("vertexTable",1)
 }
 
+function moveVertexLeft(cell){
+    var row = cell.parentNode.parentNode,
+        sibling = row.previousElementSibling,
+        parent = row.parentNode;
+    if (row.rowIndex<2) return null;
+    mapModule.swapVertexes(row.rowIndex-2,row.rowIndex-1);
+    parent.insertBefore(row, sibling);
+    updateOrderNumberOfTable("vertexTable",1)
+
+
+}
+
+function moveVertexRight(cell){
+    var row = cell.parentNode.parentNode,
+        sibling = row.nextSibling,
+        parent = row.parentNode;
+
+    if (row.rowIndex==(parent.rows.length-1)) return null;
+
+    mapModule.swapVertexes(row.rowIndex-1,row.rowIndex);
+    parent.insertBefore(sibling,row);
+    updateOrderNumberOfTable("vertexTable",1)
+
+
+}
+
 function updateOrderNumberOfTable(tableId,offset){
     let table = document.getElementById(tableId);
     for (let i=offset;i<table.rows.length;++i){

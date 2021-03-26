@@ -653,6 +653,22 @@ var mapModule = (function() {
         pin.setOptions({subTitle:name2});
     }
 
+    function swapVertexes(index1,index2){
+        let helper = _vertexArray[index1];
+        _vertexArray[index1] = _vertexArray[index2];
+        _vertexArray[index2] = helper;
+        _swapNameOfVertexes(index1,index2);
+        _updateVertexPolygon();
+
+    }
+
+    function _swapNameOfVertexes(index1,index2){
+        let title1 =  _vertexArray[index1].getTitle();
+        let title2 =  _vertexArray[index2].getTitle();
+        _vertexArray[index1].setOptions({title:title2});
+        _vertexArray[index2].setOptions({title:title1});
+    }
+
     // Circle functions
 
     function circlePolygonVisibility(flag){
@@ -764,5 +780,6 @@ var mapModule = (function() {
         getVDOPValues:getVDOPValues,
         createPixelsFromData:createPixelsFromData,
         clearVDOP:clearVDOP,
+        swapVertexes:swapVertexes,
     };
 })();
