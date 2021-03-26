@@ -1,8 +1,15 @@
 const { app, BrowserWindow,ipcMain,Menu,MenuItem ,dialog} = require('electron')
 const path = require("path");
 const fs = require("fs");
-const math = require("mathjs")
-const u2f = require('u2f')
+const math = require("mathjs");
+const u2f = require('u2f');
+const Express = require("express");
+const BodyParser = require("body-parser");
+const https = require("https");
+const Cors = require("cors");
+
+
+
 
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
@@ -317,6 +324,16 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
             if (xPoint<latitude) numberOfIntersections++;
         }
     }
+    var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[0].get('lon'))
+    var minY = Math.min(polygonOfInterest[i-1].get('lon'),polygonOfInterest[0].get('lon'))
+    if ((longitude>minY)&&(longitude<maxY)){
+
+        var firstPartOfLine = Math.abs(polygonOfInterest[i-1].get('lon')-longitude)
+        var secondPartOfLine = Math.abs(polygonOfInterest[0].get('lon')-longitude)
+        var division = firstPartOfLine/(firstPartOfLine+secondPartOfLine);
+        var xPoint = polygonOfInterest[i-1].get('lat')+division*(polygonOfInterest[0].get('lat')- polygonOfInterest[i-1].get('lat'));
+        if (xPoint<latitude) numberOfIntersections++;
+    }
     return numberOfIntersections%2===1;
 }
 
@@ -625,3 +642,21 @@ function saveAs(ifChangeSavePath){
         console.log(err)
     });
 }
+
+var serverHelper = Express();
+
+serverHelper.use(BodyParser.json());
+serverHelper.use(BodyParser.urlencoded({ extended: true }));
+serverHelper.use(Cors());
+
+const options = {
+    key: fs.readFileSync('9149123_localhost.key'),
+    cert: fs.readFileSync('9149123_localhost.cert')
+};
+
+https.createServer(options, function (req, res) {
+    res.writeHead(200);
+    res.end("hello world\n");
+}).listen(8000, ()=>{
+    console.log('works?')
+});

@@ -581,17 +581,34 @@ var mapModule = (function() {
         let loc = vertex.getLocation();
         let index=0;
         let minDistance = Number.MAX_VALUE;
+        let mainDirection = null;
         for (let i=0;i<_vertexArray.length;++i){
-            let distance = _computeDistanceToLineOfPolygon(loc,i);
+            let [distance,direction] = _computeDistanceToLineOfPolygon(loc,i);
             if (distance<minDistance){
                 minDistance=distance;
                 index = (i+1);
+                mainDirection = direction;
+            } else if ((distance==minDistance)&&(index>0)){
+                index = _computeBetterLineBasedOnDirections(loc,index,i,mainDirection,direction)
             }
         }
         return index;
     }
 
+    function _computeBetterLineBasedOnDirections(loc,index1,index2,direction1,direction2){
+        let locVertex1 = _vertexArray[index1].getLocation();
+        let locVertex2 = _vertexArray[index2].getLocation();
+        let polygonPoint1XYZ= _geodetic2enu(locVertex1.latitude,locVertex1.longitude,0,loc.latitude,loc.longitude,0);
+        let polygonPoint2XYZ= _geodetic2enu(locVertex2.latitude,locVertex2.longitude,0,loc.latitude,loc.longitude,0);
+        polygonPoint1XYZ = math.add(polygonPoint1XYZ,direction1);
+        polygonPoint2XYZ = math.add(polygonPoint2XYZ,direction2);
+        if (math.norm(polygonPoint1XYZ,2)<math.norm(polygonPoint2XYZ,2)){
+            return (index2+1);
+        } else return (index1);
+    }
+
     function _computeDistanceToLineOfPolygon(loc,currentIndex){
+        let direction;
         let nextIndex = currentIndex+1;
         if (nextIndex == _vertexArray.length) nextIndex=0;
         let locVertex1 = _vertexArray[currentIndex].getLocation()
@@ -603,13 +620,16 @@ var mapModule = (function() {
         let crossPointOnSegment = math.divide(math.multiply(polygonPoint1XYZ,deltaPolygonPointXYZ),segmentLength**2);
         let shortestDistance;
         if (crossPointOnSegment<0){
+            direction = math.divide(deltaPolygonPointXYZ,segmentLength);
             shortestDistance=math.norm(polygonPoint1XYZ,2);
         } else if (crossPointOnSegment>1){
+            direction = math.divide(deltaPolygonPointXYZ,-segmentLength);
             shortestDistance=math.norm(polygonPoint2XYZ,2);
         } else{
+            direction = null;
             shortestDistance = math.norm(math.subtract(polygonPoint1XYZ,math.multiply(crossPointOnSegment,deltaPolygonPointXYZ)),2)
         }
-        return shortestDistance;
+        return [shortestDistance,direction];
     }
 
     function deleteVertex(index){
