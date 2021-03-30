@@ -11,7 +11,7 @@ const {value1,value2} = import('./readExample.js');
 
 
 let pass ='';
-let passFlag=true;
+let passFlag=false;
 
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
@@ -170,7 +170,7 @@ Menu.setApplicationMenu(menu)
 
 let stopFlag;
 
-function createWindow (isNotMain) {
+function createWindow (isNotMain,name) {
     if (!isNotMain) {
         win = new BrowserWindow({
             width: 1200,
@@ -184,9 +184,19 @@ function createWindow (isNotMain) {
         })
 
         win.webContents.on("before-input-event", (event, input) => {
-            if (passFlag) if (input.type=='keyDown') console.log(input.key);
+            if (passFlag) if (input.type=='keyDown') {
+                if (input.key=='Enter'){
+                    let ifCorrectPass = true;
+                    pass=''
+                    passFlag=false;
+                    if (ifCorrectPass)
+                    win.webContents.send("fromMain", ['gotKey']);
+                } else {
+                    pass+=input.key;
+                    //console.log(pass)
+                }
+            }
         });
-
 
         win.maximize();
         ipcMain.on('request-update-label-in-second-window', (event, arg) => {
@@ -195,13 +205,25 @@ function createWindow (isNotMain) {
         win.setMenu(null);
         win.loadFile('index.html');
     } else{
-        winHelper = new BrowserWindow({
-            width: 1200,
-            height: 800,
-            title: "Help",
-        })
-        winHelper.loadFile('LICENSES.chromium.html');
-        winHelper.setMenu(null);
+        if (name=='helper'){
+            winHelper = new BrowserWindow({
+                width: 1200,
+                height: 800,
+                title: "Help",
+            })
+            winHelper.loadFile('LICENSES.chromium.html');
+            winHelper.setMenu(null);
+        } else if (name=='security'){
+            winHelper = new BrowserWindow({
+                width: 1200,
+                height: 800,
+                title: "Pass",
+                frame: false,
+            })
+            winHelper.loadFile('yubiAnimation.html');
+            winHelper.setMenu(null);
+        }
+
     }
 }
 
@@ -257,7 +279,9 @@ ipcMain.on("toMain", (event, args) => {
     }else if (args[0]== 'firstRun'){
         saveExamples(true);
     }else if (args[0]== 'checkKey'){
-        win.webContents.send("fromMain", ['gotKey']);
+        passFlag = true;
+        //win.webContents.send("fromMain", ['gotKey']);
+        createWindow(true,'security');
     }
 
 });
@@ -314,7 +338,7 @@ app.on('window-all-closed', () => {
 })
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow(false)
+    createWindow(false,'helper')
   }
 })
 

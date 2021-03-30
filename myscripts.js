@@ -229,16 +229,18 @@ function saveTables(){
 function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
 {
     if (!confirm('Do you have a key?')) window.api.send("toMain", ['exit']);
+    mapModule.setMap('placeholder');
     getKey();
 
 }
 
 function GetMap2(){
+    window.api.send("toMain", ['setMenu']);
     try {
         var map = new Microsoft.Maps.Map('#myMap')
     }
     catch (e){
-        alert('There was a problem with connection. Try again later.')
+        alert('There was a problem with connection. Try again later.');
         window.api.send("toMain", ['exit']);
     }
     let checkbox = document.getElementById("polygonCheckBox");
@@ -257,7 +259,9 @@ function getKey(){ //TODO
 
 function checkConnection()
 {
+    //if (!mapModule.checkIfMapIsSet()) {
     if (!mapModule.checkIfMapIsSet()) {
+
         alert('There was a problem with connection. Try again later.')
         window.api.send("toMain", ['exit']);
     }

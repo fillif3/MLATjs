@@ -1,3 +1,7 @@
+body, html {
+  height: 100%;
+}
+
 #blocker{
   position: fixed;
   width: 100%;
@@ -326,4 +330,37 @@ table{
 .notMargin{
   margin: 0;
   width: 100%;
+}
+
+.yubiImgDiv{
+
+  height: 80%;
+  width: 100%;
+}
+
+.yubiImg{
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.yubiInput{
+  font-size: 1em;
+  padding: 1em;
+  width: 80%;
+  margin-left: 10%;
+  margin-top: 2%;
+  alignment: center;
+}
+
+.yubiInputLabel{
+  width: 100%;
+  margin-top: 1%;
+  font-size: 20px;
+  alignment: center;
+  text-align: center;
+}
+
+#securityWindow{
+  overflow: hidden;
 }
