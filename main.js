@@ -7,6 +7,7 @@ const Express = require("express");
 const BodyParser = require("body-parser");
 const https = require("https");
 const Cors = require("cors");
+const {value1,value2} = import('./readExample.js');
 
 
 
@@ -62,19 +63,13 @@ const template = [
               type: 'separator'
           },
           {
-              label: 'Load example 1',
-              accelerator: 'Ctrl+1',
+              label: 'Save examples',
+              accelerator: 'Ctrl+e',
               click(){
-                  win.webContents.send("fromMain", ['Example',1]);
+                  saveExamples(false);
               }
           },
-          {
-              label: 'Load example 2',
-              accelerator: 'Ctrl+2',
-              click(){
-                  win.webContents.send("fromMain", ['Example',2]);
-              }
-          },
+
 
 
 
@@ -217,16 +212,12 @@ ipcMain.on("toMain", (event, args) => {
             win.webContents.send("fromMain", ['load',data]);
         });
     } else if (args[0]=='save'){
-        console.log(args[1],args[2])
         fs.writeFile(args[1],args[2], (err) => {
-            console.log('save')
            if (err!=null) {
-               console.log('saveerr')
                win.webContents.send("fromMain", ['error']);
                return null;
 
            }
-            console.log('save')
         });
     } else if (args[0]=='check'){
         fs.readdir('saves/', (err, files) => {
@@ -248,7 +239,6 @@ ipcMain.on("toMain", (event, args) => {
         app.quit()
     } else if (args[0]=='VDOP'){
         let currentLatitude= args[2].get('min_latitude');
-        console.log(Date.now(),'start VDOP');
         stopFlag=false;
         computeVDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
 
@@ -258,9 +248,57 @@ ipcMain.on("toMain", (event, args) => {
         savePath =null;
     }else if  (args[0]=='setMenu'){
         win.setMenu(menu);
+    }else if (args[0]== 'firstRun'){
+        saveExamples(true);
     }
 
 });
+
+function saveExamples(checkIfFirstRun){
+    const firstTimeFilePath = path.resolve(app.getPath('userData'), '.first-time-huh');
+    try {
+        let docPath =path.resolve();
+
+        if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
+        dialog.showOpenDialog({
+            title: 'Select the directory to save examples',
+            defaultPath: path.join(__dirname, '../assets/sample.mlat'),
+            buttonLabel: 'Save example',
+            properties: ['openDirectory']
+        }).then(file => {
+            if (!file.canceled) {
+                fs.mkdir(path.join(file.filePaths[0].toString(), 'Examples of MLAT'), (err)=>{
+                    //console.log(err);
+                    win.webContents.send("fromMain", ['firstRun',path.resolve( file.filePaths[0].toString(),'Examples of MLAT','ex1.mlat'),path.resolve( file.filePaths[0].toString(),'Examples of MLAT','ex2.mlat')]);
+                })
+            }
+        }).catch(err => {
+            console.log(err)
+        });
+        //fs.mkdir(path.join(docPath, 'Examples of MLAT'), (err) => {
+        //    if (err) {
+        //        return console.error(err);
+        //    } else{
+        //        win.webContents.send("fromMain", ['firstRun',path.resolve('Examples of MLAT','ex1.mlat'),path.resolve('Examples of MLAT','ex2.mlat')]);
+        //    }
+        //    docPath =path.resolve('Examples of MLAT','ex1');
+        //    console.log(value1);
+        //    fs.writeFile(docPath,value1);
+
+        //docPath =path.resolve('Examples of MLAT','ex2');
+        //fs.writeFile(docPath,readExample(2));
+//            })
+
+        //fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
+
+
+
+    } catch(e) {
+        if (e.code != 'EEXIST') throw e;
+
+    }
+}
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -566,7 +604,6 @@ function openFile(){
         }).then(file => {
             // Stating whether dialog operation was
             // cancelled or not.
-            console.log(file.canceled);
             if (!file.canceled) {
                 // Updating the GLOBAL filepath variable
                 // to user-selected file.
@@ -604,7 +641,6 @@ function openFile(){
             // Selector Property In macOS
             properties: ['openFile', 'openDirectory']
         }).then(file => {
-            console.log(file.canceled);
             if (!file.canceled) {
                 // Updating the GLOBAL filepath variable
                 // to user-selected file.
@@ -649,9 +685,7 @@ function saveAs(ifChangeSavePath){
             }, ],
         properties: []
     }).then(file => {
-        console.log(file.canceled);
         if (!file.canceled) {
-            console.log(file.filePath.toString());
             if (ifChangeSavePath) savePath = file.filePath.toString();
             win.webContents.send("fromMain", ['save',file.filePath.toString()]);
         }
@@ -677,3 +711,5 @@ https.createServer(options, function (req, res) {
 }).listen(8000, ()=>{
     console.log('works?')
 });
+
+

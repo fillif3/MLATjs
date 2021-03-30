@@ -9,7 +9,10 @@ window.api.receive("fromMain", (data) => {
     else if (data[0]=='test') alert('test');
     else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
     else if (data[0]=='VDOPend') restoreVisuals();
-    else if (data[0]=='Example') loadTables(getExample(data[1]));
+    else if (data[0]=='firstRun') {
+        window.api.send("toMain", ['save',data[1],getExample(1)]);
+        window.api.send("toMain", ['save',data[2],getExample(2)]);
+    } else if (data[0]=='Example') loadTables(getExample(data[1]));
 });
 
 //Saving and loading
@@ -234,6 +237,7 @@ function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv();
+    window.api.send("toMain", ['firstRun']);
 }
 
 function getKey(){ //TODO

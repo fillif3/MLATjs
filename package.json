@@ -1,14 +1,14 @@
 {
-  "_comment1": "electron-packager . MLAT analazer --platform=win32 --arch=all --out dist/, electron .",
+  "_comment1": "electron-packager . MLAT analyzer --platform=win32 --arch=all --out dist/, electron .",
   "name": "MLAT_Analyzer",
   "version": "1.0.0",
   "author": "Filip Surma",
-  "description": "This application allows user to place ground stations on a map and mark the place of interest. Software can calculate a localization measurement error depending on transmitter position.",
+  "description": "This application allows user to place ground stations on a map and mark the place of interest. The software can calculate a localization measurement error depending on transmitter position.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager . MLAT_Analazer --platform linux --arch x64 --out dist/",
-    "deb64": "electron-installer-debian --src dist/MLAT_Analazer-linux-x64/ --dest dist/installers/ --arch amd64 --icon  dist/icom.png"
+    "build": "electron-packager . MLAT_Analyzer --platform linux --arch x64 --out dist/",
+    "deb64": "electron-installer-debian --src dist/MLAT_Analyzer-linux-x64/ --dest dist/installers/ --arch amd64 --icon  dist/icom.png"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.54",
