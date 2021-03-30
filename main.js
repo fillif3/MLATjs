@@ -10,7 +10,8 @@ const Cors = require("cors");
 const {value1,value2} = import('./readExample.js');
 
 
-
+let pass ='';
+let passFlag=true;
 
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
@@ -182,6 +183,11 @@ function createWindow (isNotMain) {
             }
         })
 
+        win.webContents.on("before-input-event", (event, input) => {
+            if (passFlag) if (input.type=='keyDown') console.log(input.key);
+        });
+
+
         win.maximize();
         ipcMain.on('request-update-label-in-second-window', (event, arg) => {
             win.webContents.send('action-update-label', arg);
@@ -250,6 +256,8 @@ ipcMain.on("toMain", (event, args) => {
         win.setMenu(menu);
     }else if (args[0]== 'firstRun'){
         saveExamples(true);
+    }else if (args[0]== 'checkKey'){
+        win.webContents.send("fromMain", ['gotKey']);
     }
 
 });
@@ -694,22 +702,5 @@ function saveAs(ifChangeSavePath){
     });
 }
 
-var serverHelper = Express();
-
-serverHelper.use(BodyParser.json());
-serverHelper.use(BodyParser.urlencoded({ extended: true }));
-serverHelper.use(Cors());
-
-const options = {
-    key: fs.readFileSync('9149123_localhost.key'),
-    cert: fs.readFileSync('9149123_localhost.cert')
-};
-
-https.createServer(options, function (req, res) {
-    res.writeHead(200);
-    res.end("hello world\n");
-}).listen(8000, ()=>{
-    console.log('works?')
-});
 
 
