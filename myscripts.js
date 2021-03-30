@@ -1,5 +1,14 @@
-// Connection
-
+function test(){
+    $.get("https://localhost/register", result => {
+        console.log(result);
+        window.u2f.register(result.appId, [result], [], response => {
+            $.post("https://localhost/register", { registerResponse: response }, result => {
+                console.log(result);
+            });
+            console.log(response);
+        });
+    });
+}
 window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
@@ -13,6 +22,7 @@ window.api.receive("fromMain", (data) => {
         window.api.send("toMain", ['save',data[1],getExample(1)]);
         window.api.send("toMain", ['save',data[2],getExample(2)]);
     } else if (data[0]=='Example') loadTables(getExample(data[1]));
+    else if (data[0]=='gotKey') GetMap2();
 });
 
 //Saving and loading
@@ -219,10 +229,11 @@ function saveTables(){
 function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
 {
     if (!confirm('Do you have a key?')) window.api.send("toMain", ['exit']);
-    else  {
-        if (!getKey()) window.api.send("toMain", ['exit']);
-        window.api.send("toMain", ['setMenu']);
-    }
+    getKey();
+
+}
+
+function GetMap2(){
     try {
         var map = new Microsoft.Maps.Map('#myMap')
     }
@@ -241,7 +252,7 @@ function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
 }
 
 function getKey(){ //TODO
-    return true;
+    window.api.send("toMain", ['checkKey']);
 }
 
 function checkConnection()
