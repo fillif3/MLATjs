@@ -329,7 +329,8 @@ function addNewVertex(e){
         loc = new Microsoft.Maps.Location(lat,lon);
 
     }
-    let index = mapModule.addVertex(loc,changeVertexInTable,true);
+    let isSmartPlacing = document.getElementById('smartPlacingVertexesCheckBox').checked;
+    let index = mapModule.addVertex(loc,changeVertexInTable,isSmartPlacing);
 
     var content = [index+1,lat,lon ] ;
     addNewRowToTable("vertexTable",index+1,content,
@@ -685,7 +686,8 @@ function toggle(divId,button){
 
 function togglePolygon(checkBox){
     if (checkBox.checked){
-        var button = document.getElementById("polygonShowingTableButton")
+        document.getElementById("smartPlacingVertexesCheckBoxDiv").style.display='block';
+        var button = document.getElementById("polygonShowingTableButton");
         button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
         button = document.getElementById("circleShowingTableButton")
         button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
@@ -695,6 +697,7 @@ function togglePolygon(checkBox){
         mapModule.vertexPolygonVisibility(true);
         mapModule.circlePolygonVisibility(false);
     } else {
+        document.getElementById("smartPlacingVertexesCheckBoxDiv").style.display='none';
         $('#'+"circleOfInterestHideDiv").slideDown("slow");
         $('#'+"polygonOfInterestDiv").slideUp("slow");
         $('#'+"polygonOfInterestHideButton").slideUp("slow");

@@ -1,9 +1,9 @@
 {
   "_comment1": "electron-packager . MLAT analazer --platform=win32 --arch=all --out dist/, electron .",
-  "name": "MLAT_Analazer",
-  "version": "0.1.0",
+  "name": "MLAT_Analyzer",
+  "version": "1.0.0",
   "author": "Filip Surma",
-  "description": "My Electron app",
+  "description": "This application allows user to place ground stations on a map and mark the place of interest. Software can calculate a localization measurement error depending on transmitter position.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

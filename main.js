@@ -179,7 +179,7 @@ function createWindow (isNotMain) {
         win = new BrowserWindow({
             width: 1200,
             height: 800,
-            title: "Localization measurnment error - accuracy",
+            title: "MLAT Analyzer",
             autoHideMenuBar: false,
             webPreferences: {
                 nodeIntegration: true,
