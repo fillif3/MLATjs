@@ -216,19 +216,32 @@ function createWindow (isNotMain,name) {
             });
             winSecurity.setMenu(null);
             winSecurity.webContents.on("before-input-event", (event, input) => {
+                process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
                 if (passFlag) if (input.type=='keyDown') {
                     //winSecurity.webContents.openDevTools()
                     if (input.key=='Enter'){
-                        let ifCorrectPass=checkPassword(pass);
-                        pass = '';
-                        if (ifCorrectPass) {
-                            passFlag = false;
-                            win.webContents.send("fromMain", ['gotKey']);
-                            winSecurity.close();
+                        axios.post('http://localhost:8000/', {
+                            password: pass
 
-                        } else{
-                            winSecurity.webContents.send("fromMain", ['wrongKey']);
-                        }
+                        })
+                            .then(res => {
+
+                                let ifCorrectPass=(res.data===true);
+                                pass = '';
+                                if (ifCorrectPass) {
+                                    passFlag = false;
+                                    win.webContents.send("fromMain", ['gotKey']);
+                                    winSecurity.close();
+
+                                } else{
+                                    winSecurity.webContents.send("fromMain", ['wrongKey','You used wrong key.']);
+                                }
+
+                            })
+                            .catch(error => {
+                                winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with connection']);
+                            })
+
 
                     } else if(input.key=='Escape'){
                         app.quit()
@@ -244,22 +257,7 @@ function createWindow (isNotMain,name) {
     }
 }
 
-function checkPassword(pass){
-        /*axios.post('http://httpbin.org/post', {
-            //password: pass
-            name: 'John Doe', occupation: 'gardener'
-        })
-        .then(res => {
-            console.log(res.data)
-            return true;
-        })
-        .catch(error => {
-            console.error(error)
-            return true;
-        })*/
-    return (pass.slice(pass.length-44,pass.length-32) === truePassword);
 
-}
 
 app.whenReady().then(createWindow)
 

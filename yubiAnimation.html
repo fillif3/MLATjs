@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="mystyle.css">
     <script>
         window.api.receive("fromMain", (data) => {
-            if (data[0]=='wrongKey') alert('You used wrong key.');
+            if (data[0]=='wrongKey') alert(data[1]);
         });
 
     </script>
