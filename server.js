@@ -19,6 +19,11 @@ server.get("/",(req, res, next)=>{
     response.send({"message":"hellow world"});
 })
 
+server.post("/",(req, res, next)=>{
+    response.send({"message":"hellow world"});
+})
+
+
 server.get("/register", (request, response, next) => {    console.log(session)
     console.log('qwewqe');
     var session = U2F.request(APP_ID);

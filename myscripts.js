@@ -23,6 +23,7 @@ window.api.receive("fromMain", (data) => {
         window.api.send("toMain", ['save',data[2],getExample(2)]);
     } else if (data[0]=='Example') loadTables(getExample(data[1]));
     else if (data[0]=='gotKey') GetMap2();
+    //else if (data[0]=='wrongKey') alert('wrong key');
 });
 
 //Saving and loading
@@ -259,6 +260,7 @@ function getKey(){ //TODO
 
 function checkConnection()
 {
+    //window.api.send("toMain", ['checkKey']);
     //if (!mapModule.checkIfMapIsSet()) {
     if (!mapModule.checkIfMapIsSet()) {
 

@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="mystyle.css">
+    <script>
+        window.api.receive("fromMain", (data) => {
+            if (data[0]=='wrongKey') alert('You used wrong key.');
+        });
+
+    </script>
 </head>
 <body id=" securityWindow">
     <div class = 'yubiImgDiv'>
@@ -14,5 +20,10 @@
         <input class = 'yubiInput' type="password" id="pass" name="password"
                minlength="8" required>
     </div>
+
+    <script>
+        console.log('ready');
+    </script>
+
 </body>
 </html>

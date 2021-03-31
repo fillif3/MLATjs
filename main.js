@@ -2,12 +2,8 @@ const { app, BrowserWindow,ipcMain,Menu,MenuItem ,dialog} = require('electron')
 const path = require("path");
 const fs = require("fs");
 const math = require("mathjs");
-const u2f = require('u2f');
-const Express = require("express");
-const BodyParser = require("body-parser");
-const https = require("https");
-const Cors = require("cors");
-const {value1,value2} = import('./readExample.js');
+const axios = require('axios')
+
 
 
 let pass ='';
@@ -18,7 +14,10 @@ const _semiminor_axis = 6356752.31424518
 
 let win;
 let winHelper;
+let winSecurity;
 let savePath =null;
+
+const truePassword ='ccccccvbigrr' //for debug
 
 const template = [
     {
@@ -183,20 +182,7 @@ function createWindow (isNotMain,name) {
             }
         })
 
-        win.webContents.on("before-input-event", (event, input) => {
-            if (passFlag) if (input.type=='keyDown') {
-                if (input.key=='Enter'){
-                    let ifCorrectPass = true;
-                    pass=''
-                    passFlag=false;
-                    if (ifCorrectPass)
-                    win.webContents.send("fromMain", ['gotKey']);
-                } else {
-                    pass+=input.key;
-                    //console.log(pass)
-                }
-            }
-        });
+
 
         win.maximize();
         ipcMain.on('request-update-label-in-second-window', (event, arg) => {
@@ -214,17 +200,65 @@ function createWindow (isNotMain,name) {
             winHelper.loadFile('LICENSES.chromium.html');
             winHelper.setMenu(null);
         } else if (name=='security'){
-            winHelper = new BrowserWindow({
+            winSecurity = new BrowserWindow({
                 width: 1200,
                 height: 800,
                 title: "Pass",
                 frame: false,
+                webPreferences: {
+                    nodeIntegration: true,
+                    preload: path.join(__dirname, "preload.js")
+                }
             })
-            winHelper.loadFile('yubiAnimation.html');
-            winHelper.setMenu(null);
+            winSecurity.loadFile('yubiAnimation.html');
+            ipcMain.on('request-update-label-in-second-window', (event, arg) => {
+                win.webContents.send('action-update-label', arg);
+            });
+            winSecurity.setMenu(null);
+            winSecurity.webContents.on("before-input-event", (event, input) => {
+                if (passFlag) if (input.type=='keyDown') {
+                    //winSecurity.webContents.openDevTools()
+                    if (input.key=='Enter'){
+                        let ifCorrectPass=checkPassword(pass);
+                        pass = '';
+                        if (ifCorrectPass) {
+                            passFlag = false;
+                            win.webContents.send("fromMain", ['gotKey']);
+                            winSecurity.close();
+
+                        } else{
+                            winSecurity.webContents.send("fromMain", ['wrongKey']);
+                        }
+
+                    } else if(input.key=='Escape'){
+                        app.quit()
+                    } else {
+                        pass+=input.key;
+                        console.log(input.key)
+
+                    }
+                }
+            });
         }
 
     }
+}
+
+function checkPassword(pass){
+        /*axios.post('http://httpbin.org/post', {
+            //password: pass
+            name: 'John Doe', occupation: 'gardener'
+        })
+        .then(res => {
+            console.log(res.data)
+            return true;
+        })
+        .catch(error => {
+            console.error(error)
+            return true;
+        })*/
+    return (pass.slice(pass.length-44,pass.length-32) === truePassword);
+
 }
 
 app.whenReady().then(createWindow)
