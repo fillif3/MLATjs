@@ -17,7 +17,6 @@ let winHelper;
 let winSecurity;
 let savePath =null;
 
-const truePassword ='ccccccvbigrr' //for debug
 
 const template = [
     {
@@ -220,27 +219,31 @@ function createWindow (isNotMain,name) {
                 if (passFlag) if (input.type=='keyDown') {
                     //winSecurity.webContents.openDevTools()
                     if (input.key=='Enter'){
-                        axios.post('http://localhost:8000/', {
-                            password: pass
+                        winSecurity.webContents.send("fromMain", ['start',pass.length]);
+                        let helper = pass.slice(pass.length-44);
+
+                        axios.get('https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
+                            let statusArray = resp.data.split('\r\n')
+                            //for (let i=0;i<statusArray.length;i++)
+                            if (statusArray[statusArray.length-3]==='status=OK'){
+                                passFlag = false;
+                                win.webContents.send("fromMain", ['gotKey']);
+                                winSecurity.close();
+
+                            } else{
+                                winSecurity.webContents.send("fromMain", ['wrongKey','You used wrong key.']);
+                            }
 
                         })
-                            .then(res => {
-
-                                let ifCorrectPass=(res.data===true);
-                                pass = '';
-                                if (ifCorrectPass) {
-                                    passFlag = false;
-                                    win.webContents.send("fromMain", ['gotKey']);
-                                    winSecurity.close();
-
-                                } else{
-                                    winSecurity.webContents.send("fromMain", ['wrongKey','You used wrong key.']);
-                                }
-
-                            })
                             .catch(error => {
+                                console.log(error);
                                 winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with connection']);
                             })
+
+
+
+
+
 
 
                     } else if(input.key=='Escape'){

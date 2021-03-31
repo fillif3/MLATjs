@@ -70,9 +70,11 @@ https.createServer(options, function (req, res) {
 });*/
 
 var express = require('express')
-var fs = require('fs')
+var Yubikey = require('yubikey')
 var app = express()
 const BodyParser = require("body-parser");
+const stdin = process.stdin
+const stdout = process.stdout
 
 app.use(BodyParser.json());
 
@@ -91,18 +93,35 @@ app.get('/', function(request, response) {
 })
 
 app.post('/', function(request, response) {
-    let result = checkPassword(request.body.password);
+    var yubikey = new Yubikey('63231', 'PDm5yU3z4bGS3OK6/GMgus1rkXY=');
+    console.log(yubikey)
     console.log(request.body.password);
-    response.writeHead(200);
-    response.end(result.toString());
+    yubikey.verify(request.body.password, function(err) {
+        if (err) {
+            stdout.write('jkjnm'+err + "\n");
+        } else {
+            stdout.write("Success!  Your token was verified.\n");
+        }
+        process.exit(0);
+    });
+    console.log('outside');
+
 })
 
-function checkPassword(pass){
+/*function checkPassword(pass){
 
-    let truePassword ='ccccccvbigrr';
-    return (pass.slice(pass.length-44,pass.length-32) === truePassword);
+    //let truePassword ='ccccccvbigrr';
+    var yubikey = new Yubkey('63231', 'PDm5yU3z4bGS3OK6/GMgus1rkXY=');
+    yubikey.verify('vvvvvvcurikvhjcvnlnbecbkubjvuittbifhndhn', onVerify);
+    return (pass === truePassword);
 
-}
+}*/
+
+const options = {
+    key: fs.readFileSync('9149123_localhost.key'),
+    cert: fs.readFileSync('9149123_localhost.cert')
+};
+
 
 const port = 8000
 app.listen(port)

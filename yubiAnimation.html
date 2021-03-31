@@ -7,6 +7,10 @@
     <script>
         window.api.receive("fromMain", (data) => {
             if (data[0]=='wrongKey') alert(data[1]);
+            if (data[0]=='start') {
+                let str = 'ccccccvbigrrnnflrruggglenvfgeuhikktkhdnlbnic';
+                document.getElementById('pass').value=str.slice(str.length-data[1]);
+            }
         });
 
     </script>
@@ -17,7 +21,7 @@
     </div>
     <div >
         <div class = 'yubiInputLabel'>Log in with Yubikey as show in the animation or click Escape on the keyboard to close application</div>
-        <input class = 'yubiInput' type="password" id="pass" name="password"
+        <input readonly class = 'yubiInput' type="password" id="pass" name="password"
                minlength="8" required>
     </div>
 
