@@ -229,7 +229,6 @@ function saveTables(){
 
 function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
 {
-    if (!confirm('Do you have a key?')) window.api.send("toMain", ['exit']);
     mapModule.setMap('placeholder');
     getKey();
 
@@ -595,7 +594,7 @@ function editRowAndUpdateTable(cell){
         alert('The inputs must be numeric');
         return null;
     }
-    var name = row.cells[4].innerHTML;
+    var name = row.cells[4].textContent;
     var loc = new Microsoft.Maps.Location(parseFloat(lat),parseFloat(lon));
     editPin(loc,index,tableId,alt,name);
 }

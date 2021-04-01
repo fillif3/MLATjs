@@ -150,13 +150,13 @@ const template = [
             {
                 label: 'Learn More',
                 click() {
-                    createWindow(true);
+                    createWindow(true,'helper');
                 }
             },
             {
                 label: 'License',
                 click() {
-                    createWindow(true);
+                    createWindow(true,'helper');
                 }
             },
         ]
@@ -172,6 +172,7 @@ function createWindow (isNotMain,name) {
     if (!isNotMain) {
         win = new BrowserWindow({
             width: 1200,
+            minWidth:650,
             height: 800,
             title: "MLAT Analyzer",
             autoHideMenuBar: false,
@@ -226,18 +227,36 @@ function createWindow (isNotMain,name) {
                             let statusArray = resp.data.split('\r\n')
                             //for (let i=0;i<statusArray.length;i++)
                             if (statusArray[statusArray.length-3]==='status=OK'){
-                                passFlag = false;
-                                win.webContents.send("fromMain", ['gotKey']);
-                                winSecurity.close();
+                                axios.post('http://localhost:8000/', {
+                                    password: helper
+
+                                })
+                                    .then(res => {
+
+                                        let ifCorrectPass=(res.data===true);
+                                        pass = '';
+                                        if (ifCorrectPass) {
+                                            passFlag = false;
+                                            win.webContents.send("fromMain", ['gotKey']);
+                                            winSecurity.close();
+
+                                        } else{
+                                            winSecurity.webContents.send("fromMain", ['wrongKey','You used a key which does not belong to Aerobits.']);
+                                        }
+
+                                    })
+                                    .catch(error => {
+                                        winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to Aerobits\' server']);
+                                    })
 
                             } else{
-                                winSecurity.webContents.send("fromMain", ['wrongKey','You used wrong key.']);
+                                winSecurity.webContents.send("fromMain", ['wrongKey','You used the wrong key.']);
                             }
 
                         })
                             .catch(error => {
                                 console.log(error);
-                                winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with connection']);
+                                winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to YubiCloud']);
                             })
 
 
@@ -373,7 +392,7 @@ app.on('window-all-closed', () => {
 })
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow(false,'helper')
+    createWindow(true,'helper')
   }
 })
 
@@ -659,7 +678,7 @@ function openFile(){
         // Resolves to a Promise<Object>
         dialog.showOpenDialog({
             title: 'Select the File to be uploaded',
-            defaultPath: path.join(__dirname, '../assets/'),
+            //defaultPath: path.join(__dirname, '../assets/'),
             buttonLabel: 'Upload',
             // Restricting the user to only Text Files.
             filters: [
