@@ -2,6 +2,7 @@ body, html {
   height: 100%;
 }
 
+
 #blocker{
   position: fixed;
   width: 100%;
@@ -33,14 +34,9 @@ body, html {
 
 }
 
-#myProgress {
-  position: fixed;
-  width: 40%;
-  background-color: #ddd;
-  z-index: 100000;
-  top: 30%;
-  left: 30%;
-}
+/* The css for a blocking div which is used during computation */
+
+/* The css for additional divs like logo */
 
 .information {
   cursor: pointer;
@@ -62,11 +58,8 @@ body, html {
 
 }
 
-#myBar {
-  width: 1%;
-  height: 30px;
-  background-color: #4CAF50;
-}
+/* The css for main window */
+
 
 #myPanel {
   position:fixed;
@@ -81,94 +74,19 @@ body, html {
 
 #myMap {
   position:relative;
-
-}
-
-.hidden {
-  display: none;
-}
-
-
-#PanelVDOP {
-  background-color: white;
-  min-width: 30%;
-  min-height: 50px;
-  border: 2px solid black;
-  position: fixed;
-  top: 0;
-  right:  20%;
-  z-index: 10000;
-  display: none;
 }
 
 
 #calculateButton{
-  //position: absolute;
+//position: absolute;
   width: 100%;
-  //bottom: 0;
+//bottom: 0;
 }
 
-#popUp{
-  position: absolute;
+/* The css helpers for many windows */
+
+.hidden {
   display: none;
-  min-width: 100px; /* Need a specific value to work */
-  background-color: white;
-  left: 50%;
-  top: 40%;
-  transform: translate(-50%, -50%);
-  border-color: black;
-  border-radius: 10px;
-  border-style: solid;
-
-}
-
-
-.fullWidthButton {
-  display: block;
-  width: 100%;
-  border: none;
-  background-color: #4CAF50;
-  padding: 14px 28px;
-  font-size: 16px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.halfWidthButton {
-  float: left;
-  display: block;
-  width: 45%;
-  border: none;
-  background-color: #4CAF50;
-  padding: 14px 28px;
-  margin: 2px;
-  font-size: 16px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.fullWidthButtonBlue  {
-  display: block;
-  width: 100%;
-  border: none;
-  background-color: Blue;
-  padding: 14px 28px;
-  font-size: 16px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.halfWidthButtonBlue {
-  float: left;
-  display: block;
-  width: 45%;
-  border: none;
-  background-color:blue;
-  padding: 14px 28px;
-  margin: 2px;
-  font-size: 16px;
-  cursor: pointer;
-  text-align: center;
 }
 
 .fullHeight{
@@ -193,12 +111,45 @@ body, html {
 
 }
 
-table{
-  text-align: center;
-  border: 3px solid black;
-  width: 100%;
+
+.notMargin{
+  margin: 0;
+  !important width: 100%;
+}
+
+/* The css for popups */
+
+
+#PanelVDOP {
+  background-color: white;
+  min-width: 30%;
+  min-height: 50px;
+  border: 2px solid black;
+  position: fixed;
+  top: 0;
+  right:  20%;
+  z-index: 10000;
+  display: none;
+}
+
+
+
+#popUp{
+  position: absolute;
+  display: none;
+  min-width: 100px; /* Need a specific value to work */
+  background-color: white;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  border-color: black;
+  border-radius: 10px;
+  border-style: solid;
 
 }
+
+
+/* The css for buttons */
 
 .buttonSkip {
   float: left;
@@ -268,6 +219,14 @@ table{
 }
 
 
+/* The css for tables */
+
+table{
+  text-align: center;
+  border: 3px solid black;
+  width: 100%;
+
+}
 .fl-table {
   display: block;
   width: 100%;
@@ -330,10 +289,8 @@ table{
   text-align: center;
 }
 
-.notMargin{
-  margin: 0;
-  width: 100%;
-}
+/* The css for window to type password */
+
 
 .yubiImgDiv{
 

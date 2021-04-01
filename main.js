@@ -17,6 +17,9 @@ let winHelper;
 let winSecurity;
 let savePath =null;
 
+const homeDir = app.getPath('home');
+const desktopDir = path.resolve(homeDir, 'Desktop');
+
 
 const template = [
     {
@@ -119,16 +122,6 @@ const template = [
             {
                 role: 'zoomout'
             },
-            /*{
-                type: 'separator'
-            },
-            {
-
-                role: 'togglefullscreen',
-                click(){
-                    win.setMenuBarVisibility(false)
-                }
-            }*/
         ]
     },
 
@@ -181,15 +174,15 @@ function createWindow (isNotMain,name) {
                 preload: path.join(__dirname, "preload.js")
             }
         })
-
-
-
         win.maximize();
         ipcMain.on('request-update-label-in-second-window', (event, arg) => {
             win.webContents.send('action-update-label', arg);
         });
         win.setMenu(null);
         win.loadFile('index.html');
+        win.on('closed', (e) => {
+            app.quit();
+        })
     } else{
         if (name=='helper'){
             winHelper = new BrowserWindow({
@@ -222,17 +215,14 @@ function createWindow (isNotMain,name) {
                     if (input.key=='Enter'){
                         winSecurity.webContents.send("fromMain", ['start',pass.length]);
                         let helper = pass.slice(pass.length-44);
-
-                        axios.get('https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
+                        axios.get(
+                            'https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
                             let statusArray = resp.data.split('\r\n')
-                            //for (let i=0;i<statusArray.length;i++)
                             if (statusArray[statusArray.length-3]==='status=OK'){
                                 axios.post('http://localhost:8000/', {
                                     password: helper
-
                                 })
                                     .then(res => {
-
                                         let ifCorrectPass=(res.data===true);
                                         pass = '';
                                         if (ifCorrectPass) {
@@ -243,12 +233,10 @@ function createWindow (isNotMain,name) {
                                         } else{
                                             winSecurity.webContents.send("fromMain", ['wrongKey','You used a key which does not belong to Aerobits.']);
                                         }
-
                                     })
                                     .catch(error => {
                                         winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to Aerobits\' server']);
                                     })
-
                             } else{
                                 winSecurity.webContents.send("fromMain", ['wrongKey','You used the wrong key.']);
                             }
@@ -258,32 +246,19 @@ function createWindow (isNotMain,name) {
                                 console.log(error);
                                 winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to YubiCloud']);
                             })
-
-
-
-
-
-
-
                     } else if(input.key=='Escape'){
                         app.quit()
                     } else {
                         pass+=input.key;
-                        console.log(input.key)
+                        //console.log(input.key)
 
                     }
                 }
             });
         }
-
     }
 }
-
-
-
 app.whenReady().then(createWindow)
-
-
 ipcMain.on("toMain", (event, args) => {
     if (args[0]=='load') {
         fs.readFile(args[1], 'utf8', (err, data) => {
@@ -298,7 +273,6 @@ ipcMain.on("toMain", (event, args) => {
            if (err!=null) {
                win.webContents.send("fromMain", ['error']);
                return null;
-
            }
         });
     } else if (args[0]=='check'){
@@ -309,7 +283,6 @@ ipcMain.on("toMain", (event, args) => {
             }
             win.webContents.send("fromMain", ['check',files]);
         });
-
     } else if (args[0]=='delete'){
         try {
             fs.unlinkSync(args[1])
@@ -334,7 +307,6 @@ ipcMain.on("toMain", (event, args) => {
         saveExamples(true);
     }else if (args[0]== 'checkKey'){
         passFlag = true;
-        //win.webContents.send("fromMain", ['gotKey']);
         createWindow(true,'security');
     }
 
@@ -343,12 +315,10 @@ ipcMain.on("toMain", (event, args) => {
 function saveExamples(checkIfFirstRun){
     const firstTimeFilePath = path.resolve(app.getPath('userData'), '.first-time-huh');
     try {
-        let docPath =path.resolve();
-
         if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
         dialog.showOpenDialog({
             title: 'Select the directory to save examples',
-            defaultPath: path.join(__dirname, '../assets/sample.mlat'),
+            defaultPath: desktopDir,
             buttonLabel: 'Save example',
             properties: ['openDirectory']
         }).then(file => {
@@ -361,24 +331,6 @@ function saveExamples(checkIfFirstRun){
         }).catch(err => {
             console.log(err)
         });
-        //fs.mkdir(path.join(docPath, 'Examples of MLAT'), (err) => {
-        //    if (err) {
-        //        return console.error(err);
-        //    } else{
-        //        win.webContents.send("fromMain", ['firstRun',path.resolve('Examples of MLAT','ex1.mlat'),path.resolve('Examples of MLAT','ex2.mlat')]);
-        //    }
-        //    docPath =path.resolve('Examples of MLAT','ex1');
-        //    console.log(value1);
-        //    fs.writeFile(docPath,value1);
-
-        //docPath =path.resolve('Examples of MLAT','ex2');
-        //fs.writeFile(docPath,readExample(2));
-//            })
-
-        //fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
-
-
-
     } catch(e) {
         if (e.code != 'EEXIST') throw e;
 
@@ -406,7 +358,6 @@ function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latit
         if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
             var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
             var VDOP = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
-            //let color = getColor(VDOP)
             locataionArrayArray.push(locationArray);
             VDOPArray.push(VDOP);
         }
@@ -414,36 +365,15 @@ function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latit
     }
     win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
     currentLatitude += latitudePrecision;
-
-
     if (currentLatitude<edges.get('max_latitude')&&(!stopFlag)) setTimeout(function() {
         computeVDOP(stationLocations, edges, altitude, base_station, isCircle, latitudePrecision, longitudePrecision, polygonOfInterest, currentLatitude);
     },4);
     else {
-        console.log(Date.now(),'liczeni VDOP');
+        //console.log(Date.now(),'liczeni VDOP');
         win.webContents.send("fromMain", ['VDOPend']);
     }
 }
-function getColor(val){
-    var value = val*4;
-    var bins = 60;
-    if (value>(bins*2+1)) {return 'black';}
-    var min = "00FF00";
-    var half = "0000FF";
-    var max = "FF0000";
-    value= Math.floor(value);
-    if (value >bins){
-        value-=bins;
-        value--;
-        var tmp = generateColor(max,half,bins);
-        return '#'+tmp[value];
-    } else{
-        value--;
-        var tmp = generateColor(half,min,bins);
 
-        return '#'+tmp[value];
-    }
-}
 function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfInterest){
     if (isCircle){
         const meter_per_lat = 111320;
@@ -493,9 +423,7 @@ function computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, ba
     for (var i=0;i<stationLocations.length;++i){
         anchors.push(_geodetic2enu(stationLocations[i][0],stationLocations[i][1],0,currentLatitude,currentLongitude,altitude));
     }
-    var VDOP = _computeSingleVDOP(anchors,position,base_station);
-    return VDOP
-
+    return _computeSingleVDOP(anchors,position,base_station);
 }
 
 function _computeSingleVDOP(anchors,position,base){
@@ -553,12 +481,9 @@ function _create_array2D(size1,size2){
 function _computeJacobian2dot5D(anchors,position){
 
     var jacobian = _create_array2D(anchors.length-1,2);
-
     var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
-
     var refence_derievative = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
         math.subset(anchors,math.index(0, [0, 1]))[0]),1/distToReference);
-
     for (var i=0;i<(anchors.length-1);++i){
         var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i+1, [0, 1,2]))[0]));
         var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
@@ -586,8 +511,7 @@ function _geodetic2ecef(latitude,longitude,alt){
     var N = _semimajor_axis ** 2 / Math.sqrt(
         _semimajor_axis ** 2 * Math.cos(latitudeRadians) ** 2 + _semiminor_axis ** 2 * Math.sin(latitudeRadians) ** 2
     );
-    // Compute cartesian (geocentric) coordinates given  (curvilinear) geodetic
-    // coordinates.
+
     var x = (N + alt) * Math.cos(latitudeRadians) * Math.cos(longitudeRadians);
     var y = (N + alt) * Math.cos(latitudeRadians) * Math.sin(longitudeRadians);
     var z = (N * (_semiminor_axis / _semimajor_axis) ** 2 + alt) * Math.sin(latitudeRadians)
@@ -639,38 +563,6 @@ function convertToRGB (hex) {
     return color;
 }
 
-function generateColor(colorStart,colorEnd,colorCount){
-
-    // The beginning of your gradient
-    var start = convertToRGB (colorStart);
-
-    // The end of your gradient
-    var end   = convertToRGB (colorEnd);
-
-    // The number of colors to compute
-    var len = colorCount;
-
-    //Alpha blending amount
-    var alpha = 0.0;
-
-    var saida = [];
-
-    for (var i = 0; i < len; i++) {
-        var c = [];
-        alpha += (1.0/len);
-
-        c[0] = start[0] * alpha + (1 - alpha) * end[0];
-        c[1] = start[1] * alpha + (1 - alpha) * end[1];
-        c[2] = start[2] * alpha + (1 - alpha) * end[2];
-
-        saida.push(convertToHex (c));
-
-    }
-
-    return saida;
-
-}
-
 // Saving/Loading files
 
 function openFile(){
@@ -678,7 +570,7 @@ function openFile(){
         // Resolves to a Promise<Object>
         dialog.showOpenDialog({
             title: 'Select the File to be uploaded',
-            //defaultPath: path.join(__dirname, '../assets/'),
+            defaultPath: desktopDir,
             buttonLabel: 'Upload',
             // Restricting the user to only Text Files.
             filters: [
@@ -717,7 +609,7 @@ function openFile(){
         // If the platform is 'darwin' (macOS)
         dialog.showOpenDialog({
             title: 'Select the File to be uploaded',
-            defaultPath: path.join(__dirname, '../assets/'),
+            defaultPath: desktopDir,
             buttonLabel: 'Upload',
             filters: [
                 {
@@ -759,7 +651,6 @@ function saveWithPath(){
     }
 
 }
-
 function saveAs(ifChangeSavePath){
     dialog.showSaveDialog({
         title: 'Select the File Path to save',
@@ -779,6 +670,3 @@ function saveAs(ifChangeSavePath){
         console.log(err)
     });
 }
-
-
-

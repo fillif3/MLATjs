@@ -1,14 +1,3 @@
-function test(){
-    $.get("https://localhost/register", result => {
-        console.log(result);
-        window.u2f.register(result.appId, [result], [], response => {
-            $.post("https://localhost/register", { registerResponse: response }, result => {
-                console.log(result);
-            });
-            console.log(response);
-        });
-    });
-}
 window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
@@ -56,11 +45,8 @@ function restartMap(askFlag){
 function loadTables(text){
     restartMap(false);
     try {
-
-
         let arrText = text.split('\n');
         var index = 0;
-        //var element= document.getElementById('stationTable');
         var arrHelper;
         var counter = 1;
         while (arrText[index] !== 'end') {
@@ -86,11 +72,8 @@ function loadTables(text){
             counter++;
 
         }
-
-
         index++;
         counter = 1;
-        //var element= document.getElementById('stationTable');
         while (arrText[index] !== 'end') {
             arrHelper = [];
             for (let i = 0; i < 2; i++) {
@@ -193,7 +176,6 @@ function saveTables(){
         }
     }
     textToSave+='end\n';
-
     var listOfAddationalParametersId = ["latitudeResolutionInput","longitudeResolutionInput","altitudeInput",'selectStationList',"polygonCheckBox"]
     for (let i=0;i<listOfAddationalParametersId.length;i++){
         element= document.getElementById(listOfAddationalParametersId[i]);
@@ -201,16 +183,12 @@ function saveTables(){
         else textToSave+= element.value+'\n';
     }
     textToSave+='end\n';
-
     var loc = mapModule.getCenter();
     textToSave+= (loc.latitude.toString().slice(0,7)+'\n');
     textToSave+= (loc.longitude.toString().slice(0,7)+'\n');
-
     textToSave+='end\n';
-
     let VDOPPixels= mapModule.getVDOPPixels();
     let VDOPValues= mapModule.getVDOPValues();
-
     for (let i=0;i<VDOPPixels.length;++i){
         let locs = VDOPPixels[i].getLocations();
         for (let j=0;j<4;++j){
@@ -221,17 +199,14 @@ function saveTables(){
         textToSave+=(VDOPValues[i].toString().slice(0,7)+'\n');
     }
     textToSave+='end';
-
-
     return textToSave;
 }
 // onload
 
-function GetMap() // DO NOT DELETE, IT IS USED BY LIBRARY MAP BING
+function GetMap() // DO NOT DELETE, IT IS USED BY BING MAP API
 {
     mapModule.setMap('placeholder');
-    getKey();
-
+    window.api.send("toMain", ['checkKey']);
 }
 
 function GetMap2(){
@@ -253,20 +228,12 @@ function GetMap2(){
     window.api.send("toMain", ['firstRun']);
 }
 
-function getKey(){ //TODO
-    window.api.send("toMain", ['checkKey']);
-}
-
 function checkConnection()
 {
-    //window.api.send("toMain", ['checkKey']);
-    //if (!mapModule.checkIfMapIsSet()) {
     if (!mapModule.checkIfMapIsSet()) {
-
         alert('There was a problem with connection. Try again later.')
         window.api.send("toMain", ['exit']);
     }
-
 }
 
 function createGradientDiv(){
@@ -301,18 +268,14 @@ function createGradientDiv(){
 function stopComputation(){
    mapModule.stop();
 }
-
-
 function calculateVDOP(){
     let lat = document.getElementById('latitudeResolutionInput').value;
     let lon =document.getElementById('longitudeResolutionInput').value;
     let alt = document.getElementById('altitudeInput').value
-
     if (!doesArrayContainOnlyNumbers([lat,lon,alt])){
         alert('The inputs must be numeric');
         return null;
     }
-
     let result= mapModule.calculateVDOP( parseFloat(lat),
         parseFloat(lon),
         parseFloat(alt),
@@ -334,7 +297,6 @@ function addNewVertex(e){
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
-
     }
     else {
         var lat = document.getElementById('latInputPopUp').value;
@@ -345,13 +307,10 @@ function addNewVertex(e){
             alert('The inputs must be numeric');
             return null;
         }
-
         loc = new Microsoft.Maps.Location(lat,lon);
-
     }
     let isSmartPlacing = document.getElementById('smartPlacingVertexesCheckBox').checked;
     let index = mapModule.addVertex(loc,changeVertexInTable,isSmartPlacing);
-
     var content = [index+1,lat,lon ] ;
     addNewRowToTable("vertexTable",index+1,content,
     '<button type="button" onclick=editRowAndUpdateTable(this,"Vertex") class="buttonSkip fullWidth">Apply</button>',
@@ -370,22 +329,16 @@ function moveVertexLeft(cell){
     mapModule.swapVertexes(row.rowIndex-2,row.rowIndex-1);
     parent.insertBefore(row, sibling);
     updateOrderNumberOfTable("vertexTable",1)
-
-
 }
 
 function moveVertexRight(cell){
     var row = cell.parentNode.parentNode,
         sibling = row.nextSibling,
         parent = row.parentNode;
-
     if (row.rowIndex==(parent.rows.length-1)) return null;
-
     mapModule.swapVertexes(row.rowIndex-1,row.rowIndex);
     parent.insertBefore(sibling,row);
     updateOrderNumberOfTable("vertexTable",1)
-
-
 }
 
 function updateOrderNumberOfTable(tableId,offset){
@@ -414,7 +367,6 @@ function addNewCircle(e){
     mapModule.addCircle(loc,2000,changeCircleInTable);
     var table = document.getElementById("circleOfInterest");
     var newRow = table.rows.length;
-
     var content = [lat,lon ,2000] ;
     addNewRowToTable("circleOfInterest",newRow,content,
         '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
@@ -427,19 +379,15 @@ function addNewStation(e){
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
-
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
-
-        var alt = 0;//document.getElementById('altInputPopUp').value;
+        var alt = 0;
         mapModule.deleteHandler('click');
     }
     else {
         var lat = document.getElementById('latInputPopUp').value;
-        // TO DO: add checking if it is a number
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
-        // TO DO: add checking if it is a number
         lon = parseFloat(lon);
         var alt = document.getElementById('altInputPopUp').value;
         alt = parseFloat(alt);
@@ -447,11 +395,7 @@ function addNewStation(e){
             alert('The inputs must be numeric');
             return null;
         }
-
         loc =new Microsoft.Maps.Location(lat,lon);
-
-
-
     }
     mapModule.addStation(loc,alt,'Station',changeStationInTable)
     var table = document.getElementById("stationTable");
@@ -548,9 +492,6 @@ function deleteRowAndUpdateTable(cell,where){
         deletePin(null,tableId);
         return null;
     }
-    // error -> need to find a way to get row and dleete it
-    //row_index = table.rows.indexOf(row)
-    //table.deleteRow(indexOfRow)
     var numberOfRows = table.rows.length;
     var flag = true;
 
@@ -642,24 +583,15 @@ function hideVisuals(){
     document.getElementById('stopButton').style.display='block';
 }
 
-
-
-function hideDiv(divId)
-{
+function hideDiv(divId) {
     document.getElementById(divId).style.display = "none";
-
 }
 
-function showDiv(divId)
-{
-
+function showDiv(divId) {
     document.getElementById(divId).style.display = "block";
-
 }
 
-function showMassageWindow(whichControlsShow,whichButtonShow)
-{
-
+function showMassageWindow(whichControlsShow,whichButtonShow) {
     if (whichButtonShow === "Vertex") showDiv("addVertexButton");
     else hideDiv("addVertexButton");
     if (whichButtonShow === "Station") showDiv("addStationButton");
@@ -672,36 +604,28 @@ function showMassageWindow(whichControlsShow,whichButtonShow)
     if (whichControlsShow.includes("alt")) showDiv("altInputPopUpDiv");
     else hideDiv("altInputPopUpDiv");
     showDiv('popUp');
-
 }
 
-function hideMassageWindow(whichDivsHide)
-{
+function hideMassageWindow(whichDivsHide) {
 
     if (whichDivsHide.includes("lat")) hideDiv("latInputPopUpDiv");
     if (whichDivsHide.includes("long")) hideDiv("longInputPopUpDiv");
     if (whichDivsHide.includes("alt")) hideDiv("altInputPopUpDiv");
     hideDiv('popUp');
-
 }
 
 function getLocalizationMeasurmentError(){
-
     var t_measurment_error = parseFloat(document.getElementById('stationMeasurmentErrorInput').value);
-
     var VDOP = parseFloat(document.getElementById('VDOPInput').value);
-
     var localization_error = t_measurment_error*VDOP*0.3;
     var out = document.getElementById('localizationMeasurmentErrorInput');
     out.value = localization_error.toString().slice(0,7);
-
 }
 
 function toggle(divId,button){
     if (button.innerHTML.slice(button.innerHTML.length-4,button.innerHTML.length)==='hide') button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
     else button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'hide';
     $('#'+divId).slideToggle("slow");
-
 }
 
 function togglePolygon(checkBox){
@@ -725,13 +649,9 @@ function togglePolygon(checkBox){
         mapModule.circlePolygonVisibility(true);
     }
 }
-
-
 // math functions
 
 function doesArrayContainOnlyNumbers(arr){
     for (var i=0;i<arr.length;++i) if (isNaN(arr[i])) return false;
     return true;
 }
-
-

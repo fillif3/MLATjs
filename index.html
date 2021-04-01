@@ -59,8 +59,6 @@
                     </div>
                 </div>
             </div>
-
-
             <div id = "polygonOfInterestHideButton">
                 <button   type="button" id="polygonShowingTableButton" onclick="toggle('polygonOfInterestDiv',this)" class="hideButton">Polygon information - show</button>
             </div>
@@ -86,16 +84,11 @@
                     </div>
                 </div>
             </div>
-
-
-
-
             <div id ="circleOfInterestHideDiv">
                 <button type="button" id="circleShowingTableButton" onclick="toggle('circleOfInterestDiv',this)" class="hideButton">Circle of interest - show</button>
             </div>
             <div class='hidden' id ="circleOfInterestDiv">
                 <table  class = 'fl-table' id = "circleOfInterest">
-
                     <tbody>
                     <tr>
                         <th colspan="2">Center<br></th><td></td><td></td><td></td>
@@ -117,21 +110,6 @@
                 </div>
             </div>
             <br>
-            <!--
-            <div>
-                <button type="button" class="fullWidthButton">Center map</button>
-            </div>
-            <div>
-                <div class="halfWidthDivLeft">
-                    <label >Latitude:</label>
-                    <input type="text"  maxlength="10" size="10">
-                </div>
-                <div class="halfWidthDivLeft">
-                    <label >Longitude:</label>
-                    <input type="text"  maxlength="10" size="10">
-                </div>
-            </div>
-            -->
             <div>
                 <button type="button" onclick="toggle('addationalParametersDiv',this)" class="hideButton">Addational parameters - show</button>
             </div>
@@ -146,7 +124,6 @@
                         <input class="halfWidthDivLeft fullHeight" id = "longitudeResolutionInput"type="text"  value="100" maxlength="10" size="10">
                     </div>
                     <div style="clear:both;"></div>
-
                 </div>
                 <div class = "fullWidth">
                     <div class="halfWidthDivLeft">
@@ -160,7 +137,6 @@
                         </select>
                     </div>
                     <div style="clear:both;"></div>
-
                 </div>
                 <div class = "fullWidth">
                     <div class="halfWidthDivLeft">
@@ -172,51 +148,12 @@
                         <input type="checkbox" value=false id="smartPlacingVertexesCheckBox" >
                     </div>
                     <div style="clear:both;"></div>
-
                 </div>
             </div>
-
-            <!--<div>
-                <button type="button" onclick="toggle('savingDiv',this)" class="hideButton">Saving current session - show</button>
-            </div>
-            <div class = "hidden" id="savingDiv">
-                <div id="loadbutton">
-                    <button type="button" onclick="loadFunction()" class="buttonSkip">Load</button>
-                </div>
-                <div id="savebutton">
-                    <button type="button" onclick="saveFunction()" class="buttonSkip">Save</button>
-                </div>
-                <div id="addbutton">
-                    <button type="button" onclick="addFunction()" class="buttonSkip">Add save</button>
-                </div>
-                <div id="deletebutton">
-                    <button type="button" onclick="deleteFunction()" class="buttonSkip">Delete</button>
-                </div>
-
-                <div class="halfWidthDivLeft">
-                    <label class="information" onclick= "alert('The altitude of plane. It affects measurment error.')" class="halfWidthDivLeft fullHeight information">Name of new save file</label>
-                    <input class="halfWidthDivLeft fullHeight" id = "saveName"type="text"  value="New save" maxlength="10" size="10">
-                </div>
-                <div  class="halfWidthDivLeft">
-                    <label onclick="alert('Localization algorithm requires selecting base station. It affects measurnment error.\nYou can select station or choose best staion as base station. In this case, measurment error will be computed in the respect to each station and lowest value will be displayed')" class="fullWidth information" >Select base station:</label>
-                    <select class="fullWidth" id="selectSaveList"  maxlength="10" >
-                    </select>
-                </div>
-            </div>-->
             <div id="calculateButton">
                 <button type="button" onclick="calculateVDOP()" class="buttonSkip fullWidth notMargin">Calculate VDOP</button>
             </div>
-            <!--<div id="test">
-                <button type="button" onclick="test(true)" class="buttonSkip fullWidth notMargin">test</button>
-            </div>-->
-
-
         </div>
-
-
-    </div>
-    <div id="myProgress" class="hidden" ><!-- class="hidden"-->
-        <div id="myBar"></div>
     </div>
     <div id="logo" >
         <div>
@@ -240,8 +177,7 @@
 
          </div>
      </div>
-
-     <div id="popUp" >
+     <dv id="popUp" >
          <div class="bigCenteredText">
              Select parameters
          </div>
@@ -269,15 +205,9 @@
              <div class="DivRight">
                  <button type="button" onclick="hideMassageWindow('lat_long_alt')" >Cancel</button>
              </div>
-
-
          </div>
-     </div>
-
+     </dv>
     <div id="blocker">
     </div>
-
-
-
  </body>
  </html>

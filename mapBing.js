@@ -258,21 +258,22 @@ var mapModule = (function() {
             alert('There is no circle. You need to choose center of circle');
             return null;
         }
-        if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-        clearVDOP();
         var newStationArray = [];
         if (_ifStationActive!=null){
             for (var i=0;i<_ifStationActive.length;++i){
                 if (_ifStationActive[i]) newStationArray.push(_stationArray[i]);
             }
         } else newStationArray = _stationArray;
-        if (timeout ===4) _step = 30;
-        else _step = 5;
-        base_station--; //The user's input starts from one but indexing start from 0
         if (newStationArray.length<3) {
             alert('There are less then 3 active stations. You need at least 3 active stations to compute measurement errors');
             return null;
         }
+        if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
+        clearVDOP();
+        if (timeout ===4) _step = 30;
+        else _step = 5;
+        base_station--; //The user's input starts from one but indexing start from 0
+
         if (_blockFunction!=null) _blockFunction();
         _edges = _getPolygonEdgeValues(isCircle);
         let stationLocations=[]
