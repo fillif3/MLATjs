@@ -1,36 +1,35 @@
 var express = require('express')
-var fs = require('fs')
+//var fs = require('fs')
 var app = express()
 const BodyParser = require("body-parser");
 
 app.use(BodyParser.json());
 
-app.get('/', function(request, response) {
-    var html = `
-    <html>
-        <body>
-            <form method="post" action="http://localhost:8000">Name: 
-                <input type="text" name="name" />
-                <input type="submit" value="Submit" />
-            </form>
-        </body>
-    </html>`
-    response.writeHead(200, {'Content-Type': 'text/html'})
-    response.end(html)
-})
+// For debugging
+let today = new Date()
+const tomorrow = new Date(today)
+tomorrow.setDate(tomorrow.getDate() - 1)
+
+let dateList = [tomorrow]
+
+let passwordList = ['ccccccvbigrr'];
+
 
 app.post('/', function(request, response) {
-    let result = checkPassword(request.body.password);
+    let result = checkPasswordAndDate(request.body.password);
     console.log(request.body.password);
     response.writeHead(200);
     response.end(result.toString());
 })
 
-function checkPassword(pass){
+function checkPasswordAndDate(pass){
 
-
-    let truePassword ='ccccccvbigrr';//
-    return (pass.slice(pass.length-44,pass.length-32) === truePassword);
+    today = new Date();
+    let publicPass = pass.slice(pass.length-44,pass.length-32);
+    for (let i=0;i<passwordList.length;++i){
+    	if (publicPass === passwordList[i]) return today <= dateList[i];
+    }
+    return false;
 
 }
 

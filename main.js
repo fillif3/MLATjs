@@ -8,14 +8,14 @@ const axios = require('axios')
 
 let pass ='';
 let passFlag=false;
-
+// Constant for VDOP calculation
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
 let win;
 let winHelper;
 let winSecurity;
-let savePath =null;
+let savePath =null; //Savepath defines an opened file. If user choose save, the opened file is overwritten
 
 const homeDir = app.getPath('home');
 const desktopDir = path.resolve(homeDir, 'Desktop');
@@ -71,10 +71,6 @@ const template = [
                   saveExamples(false);
               }
           },
-
-
-
-
       ]
     },
     {
@@ -159,10 +155,10 @@ const template = [
 const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 
-let stopFlag;
+let stopFlag; //This flag is used to stop current program. It is changed by a renderer process. Once it is set, the main process exit  current process
 
 function createWindow (isNotMain,name) {
-    if (!isNotMain) {
+    if (!isNotMain) { // Create main window
         win = new BrowserWindow({
             width: 1200,
             minWidth:650,
@@ -183,7 +179,7 @@ function createWindow (isNotMain,name) {
         win.on('closed', (e) => {
             app.quit();
         })
-    } else{
+    } else{ // Create helepr window or security window
         if (name=='helper'){
             winHelper = new BrowserWindow({
                 width: 1200,
@@ -209,17 +205,17 @@ function createWindow (isNotMain,name) {
             });
             winSecurity.setMenu(null);
             winSecurity.webContents.on("before-input-event", (event, input) => {
-                process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+                process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0; // For debuging, delete later
                 if (passFlag) if (input.type=='keyDown') {
                     //winSecurity.webContents.openDevTools()
                     if (input.key=='Enter'){
                         winSecurity.webContents.send("fromMain", ['start',pass.length]);
                         let helper = pass.slice(pass.length-44);
-                        axios.get(
+                        axios.get( // Check if key is fine on the yubico website
                             'https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
                             let statusArray = resp.data.split('\r\n')
-                            if (statusArray[statusArray.length-3]==='status=OK'){
-                                axios.post('http://localhost:8000/', {
+                            if (statusArray[statusArray.length-3]==='status=OK'){ // Status is fine
+                                axios.post('http://serwer1717148.home.pl/licenses/key_checker.php', { //Check if key is our.
                                     password: helper
                                 })
                                     .then(res => {
@@ -259,7 +255,7 @@ function createWindow (isNotMain,name) {
     }
 }
 app.whenReady().then(createWindow)
-ipcMain.on("toMain", (event, args) => {
+ipcMain.on("toMain", (event, args) => { //Channel for communication with renderer processes. First argument choose what kind of acation is made
     if (args[0]=='load') {
         fs.readFile(args[1], 'utf8', (err, data) => {
             if (err!=null) {
@@ -317,7 +313,7 @@ function saveExamples(checkIfFirstRun){
     try {
         if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
         dialog.showOpenDialog({
-            title: 'Select the directory to save examples',
+            title: 'It is the    first run of this application. Do you want to save examples to chekc what can be done?',
             defaultPath: desktopDir,
             buttonLabel: 'Save example',
             properties: ['openDirectory']
