@@ -52,10 +52,6 @@ var mapModule = (function() {
         });
     }
 
-    function stop(){
-        window.api.send("toMain", ['Stop']);
-    }
-
     function setOutputId(val){
         _outputId=val;
     }
@@ -773,7 +769,6 @@ var mapModule = (function() {
         getIndexOfStation:getIndexOfStation,
         setClearFunction:setClearFunction,
         setBlockFunction:setBlockFunction,
-        stop:stop,
         setCenter:setCenter,
         getCenter:getCenter,
         checkIfMapIsSet:checkIfMapIsSet,

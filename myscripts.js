@@ -2,7 +2,6 @@ window.api.receive("fromMain", (data) => {
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
     else if (data[0]=='clear') restartMap(true);
-    else if (data[0]=='check') addSavesToList(data[1]);
     else if (data[0]=='error') alert('the operation failed');
     else if (data[0]=='test') alert('test');
     else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
@@ -17,22 +16,10 @@ window.api.receive("fromMain", (data) => {
 
 //Saving and loading
 
-function addSavesToList(saves){
-    var list= document.getElementById("selectSaveList");
-
-    if (list.value == 0) list.value=1;
-    saves.forEach(save =>{
-        let opt = document.createElement('option');
-        opt.value = save.slice(0,save.length-4);
-        opt.innerHTML = save.slice(0,save.length-4);
-        list.appendChild(opt);
-
-    })
-}
-
 function restartMap(askFlag){
-    mapModule.clearVDOP();
+
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
+    mapModule.clearVDOP();
     let table = document.getElementById('stationTable');
     while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
     table = document.getElementById('vertexTable');
@@ -42,14 +29,14 @@ function restartMap(askFlag){
 
 }
 
-function loadTables(text){
+function loadTables(text){ //Move thorugh entire save. Sends data from save to tables and map module
     restartMap(false);
     try {
         let arrText = text.split('\n');
         var index = 0;
         var arrHelper;
         var counter = 1;
-        while (arrText[index] !== 'end') {
+        while (arrText[index] !== 'end') { //Update stations
             arrHelper = [];
             for (let i = 0; i < 5; i++) {
                 arrHelper.push(arrText[index])
@@ -74,7 +61,7 @@ function loadTables(text){
         }
         index++;
         counter = 1;
-        while (arrText[index] !== 'end') {
+        while (arrText[index] !== 'end') { //Update vertexes
             arrHelper = [];
             for (let i = 0; i < 2; i++) {
                 arrHelper.push(arrText[index])
@@ -94,7 +81,7 @@ function loadTables(text){
         }
 
         index++;
-        while (arrText[index] !== 'end') {
+        while (arrText[index] !== 'end') { //Update circle
             arrHelper = [];
             for (let i = 0; i < 3; i++) {
                 arrHelper.push(arrText[index])
@@ -106,7 +93,7 @@ function loadTables(text){
             addNewRowToTable("circleOfInterest", 2, content,
                 '<button type="button" onclick=editRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Apply</button>',
                 '<button type="button" onclick=deleteRowAndUpdateTable(this,"Circle") class="buttonSkip fullWidth">Delete</button>');
-        }
+        }//Update parameters
         index++;
         document.getElementById('latitudeResolutionInput').value = arrText[index];
         index++;
@@ -126,7 +113,7 @@ function loadTables(text){
         index += 4;
         let VDOPPixelsLocations = [];
         let VDOPValues = [];
-        while (arrText[index] !== 'end') {
+        while (arrText[index] !== 'end') { //Update VDOP pixels on the map
             document.getElementById('PanelVDOP').style.display = "block";
             let helper = []
             for (let i = 0; i < 4; i++) {
@@ -152,7 +139,7 @@ function loadTables(text){
 function saveTables(){
     var textToSave ='';
     var element= document.getElementById('stationTable');
-    for (let i=1;i<element.rows.length;i++){
+    for (let i=1;i<element.rows.length;i++){ //Save stations
         for (let j=1;j<6;j++){
             if (j==5) textToSave+= element.rows[i].cells[j].firstChild.checked+'\n';
             else textToSave+= element.rows[i].cells[j].innerHTML+'\n';
@@ -161,7 +148,7 @@ function saveTables(){
     }
     textToSave+='end\n';
     element= document.getElementById('vertexTable');
-    for (let i=1;i<element.rows.length;i++){
+    for (let i=1;i<element.rows.length;i++){ //Save vertexes
         for (let j=1;j<3;j++){
             textToSave+= element.rows[i].cells[j].innerHTML+'\n';
 
@@ -169,7 +156,7 @@ function saveTables(){
     }
     textToSave+='end\n';
     element= document.getElementById('circleOfInterest');
-    for (let i=2;i<element.rows.length;i++){
+    for (let i=2;i<element.rows.length;i++){ //Save circle
         for (let j=0;j<3;j++){
             textToSave+= element.rows[i].cells[j].innerHTML+'\n';
 
@@ -177,13 +164,13 @@ function saveTables(){
     }
     textToSave+='end\n';
     var listOfAddationalParametersId = ["latitudeResolutionInput","longitudeResolutionInput","altitudeInput",'selectStationList',"polygonCheckBox"]
-    for (let i=0;i<listOfAddationalParametersId.length;i++){
+    for (let i=0;i<listOfAddationalParametersId.length;i++){ //Save parameters
         element= document.getElementById(listOfAddationalParametersId[i]);
         if (i==4) textToSave+= element.checked+'\n';
         else textToSave+= element.value+'\n';
     }
     textToSave+='end\n';
-    var loc = mapModule.getCenter();
+    var loc = mapModule.getCenter();//Save pixels
     textToSave+= (loc.latitude.toString().slice(0,7)+'\n');
     textToSave+= (loc.longitude.toString().slice(0,7)+'\n');
     textToSave+='end\n';
@@ -205,14 +192,14 @@ function saveTables(){
 
 function GetMap() // DO NOT DELETE, IT IS USED BY BING MAP API
 {
-    mapModule.setMap('placeholder');
-    window.api.send("toMain", ['checkKey']);
+    mapModule.setMap('placeholder'); //It should be reference to Map object. I set placeholder so system knows it will be loaded after key is checked
+    window.api.send("toMain", ['checkKey']); // Check key
 }
 
 function GetMap2(){
-    window.api.send("toMain", ['setMenu']);
+    window.api.send("toMain", ['setMenu']); // Send information to main process that it renderer wants a top menu
     try {
-        var map = new Microsoft.Maps.Map('#myMap')
+        var map = new Microsoft.Maps.Map('#myMap') //Loads bing map
     }
     catch (e){
         alert('There was a problem with connection. Try again later.');
@@ -220,15 +207,16 @@ function GetMap2(){
     }
     let checkbox = document.getElementById("polygonCheckBox");
     togglePolygon(checkbox);
-    mapModule.setMap(map);
+    mapModule.setMap(map); // Set refernce to map in map module
+    // Setting addational functions and IDs which will be used by map Module
     mapModule.setOutputId('VDOPInput');
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
-    createGradientDiv();
-    window.api.send("toMain", ['firstRun']);
+    createGradientDiv(); // adding gradient legend (examples of colors which change slowly)
+    window.api.send("toMain", ['firstRun']); // check if first run
 }
 
-function checkConnection()
+function checkConnection() //Load on load, it checks connection by checking if map is loaded.
 {
     if (!mapModule.checkIfMapIsSet()) {
         alert('There was a problem with connection. Try again later.')
@@ -236,13 +224,16 @@ function checkConnection()
     }
 }
 
-function createGradientDiv(){
+function createGradientDiv(){ // adding gradient legend (examples of colors which change slowly)
     var motherDiv = document.getElementById('gradientDiv');
+    // edge cases of gradient
     var min = "00FF00";
     var half = "0000FF";
     var max = "FF0000";
+    // All colors of gradient
     var colors = generateColor(half,min,15);
     colors = colors.concat(generateColor(max,half,15));
+    // Show legend for number values
     for (let i=0;i<30;++i){
         let innerDiv = document.createElement('div');
         innerDiv.innerHTML = i+1;
@@ -252,6 +243,7 @@ function createGradientDiv(){
         innerDiv.style.textAlign = 'center';
         motherDiv.appendChild(innerDiv);
     }
+    // Show that higher values are represented by black
     let innerDiv = document.createElement('div');
     innerDiv.innerHTML = '<';
     innerDiv.style.backgroundColor='black';
@@ -266,7 +258,7 @@ function createGradientDiv(){
 // button function
 
 function stopComputation(){
-   mapModule.stop();
+    window.api.send("toMain", ['Stop']);
 }
 function calculateVDOP(){
     let lat = document.getElementById('latitudeResolutionInput').value;
@@ -284,21 +276,21 @@ function calculateVDOP(){
     if (result!=null) document.getElementById('PanelVDOP').style.display = "block";
 }
 
-function addEventToMap(whichTable){
+function addEventToMap(whichTable){ // add event which happens when user click on the map.
     if (whichTable==="Station") mapModule.addHandlerMap('click', function (e) { addNewStation(e); });
     if (whichTable==="Vertex") mapModule.addHandlerMap('click', function (e) { addNewVertex(e); });
     if (whichTable==="Circle") mapModule.addHandlerMap('click', function (e) { addNewCircle(e); });
 }
 
 function addNewVertex(e){
-    if (e != null) {
+    if (e != null) { //if clicked on the map
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
     }
-    else {
+    else { //if position typed
         var lat = document.getElementById('latInputPopUp').value;
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
@@ -321,34 +313,34 @@ function addNewVertex(e){
     updateOrderNumberOfTable("vertexTable",1)
 }
 
-function moveVertexLeft(cell){
+function moveVertexLeft(cell){ //change order number of vertex
     var row = cell.parentNode.parentNode,
         sibling = row.previousElementSibling,
         parent = row.parentNode;
-    if (row.rowIndex<2) return null;
+    if (row.rowIndex<2) return null; // If to much on the left side, do move further
     mapModule.swapVertexes(row.rowIndex-2,row.rowIndex-1);
     parent.insertBefore(row, sibling);
     updateOrderNumberOfTable("vertexTable",1)
 }
 
-function moveVertexRight(cell){
+function moveVertexRight(cell){ //change order number of vertex
     var row = cell.parentNode.parentNode,
         sibling = row.nextSibling,
         parent = row.parentNode;
-    if (row.rowIndex==(parent.rows.length-1)) return null;
+    if (row.rowIndex==(parent.rows.length-1)) return null; // If to much on the right side, do move further
     mapModule.swapVertexes(row.rowIndex-1,row.rowIndex);
     parent.insertBefore(sibling,row);
     updateOrderNumberOfTable("vertexTable",1)
 }
 
-function updateOrderNumberOfTable(tableId,offset){
+function updateOrderNumberOfTable(tableId,offset){ //change order value of table's rows
     let table = document.getElementById(tableId);
     for (let i=offset;i<table.rows.length;++i){
         table.rows[i].cells[0].innerHTML = (i-offset+1);
     }
 }
 
-function addNewCircle(e){
+function addNewCircle(e){//if clicked on the map
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
@@ -357,7 +349,7 @@ function addNewCircle(e){
         mapModule.deleteHandler('click');
         document.getElementById('PanelVDOP').style.display = "none";
     }
-    else {
+    else {//if typed
         var lat = document.getElementById('latInputPopUp').value;
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
@@ -375,7 +367,7 @@ function addNewCircle(e){
     if (newRow>2) table.rows[3].parentNode.removeChild(table.rows[2]);
 }
 
-function addNewStation(e){
+function addNewStation(e){//if clicked on the map
     if (e != null) {
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
@@ -384,7 +376,7 @@ function addNewStation(e){
         var alt = 0;
         mapModule.deleteHandler('click');
     }
-    else {
+    else {//if typed
         var lat = document.getElementById('latInputPopUp').value;
         lat = parseFloat(lat);
         var lon = document.getElementById('longInputPopUp').value;
@@ -409,18 +401,18 @@ function addNewStation(e){
     addStationToList();
 }
 
-function changeStateofStation(checker){
+function changeStateofStation(checker){ //If user deactived/activated station
     var state = checker.checked;
     var row = checker.parentNode.parentNode;
     var index = row.cells[0].innerHTML-1;
     mapModule.changeStateOfStation(index,state);
-    if (state) addStationToList();
+    if (state) addStationToList(); //remove station from list of stations based in which user
     else removeStationFromList();
 }
 
 // table support functions
 
-function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonDescription2,checkBoxDescription) {
+function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonDescription2,addationalDescription) {
     var table = document.getElementById(idOfTable);
     var row = table.insertRow(indexOfRow);
     var cell;
@@ -430,7 +422,7 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
         cell.type = "number";
         if ((i>0)||(idOfTable==='circleOfInterest')) cell.contentEditable = true;
     }
-    if (checkBoxDescription==null) {
+    if (addationalDescription==null) {
         cell = row.insertCell(content.length);
         cell.innerHTML = buttonDescription;
         cell = row.insertCell(content.length + 1);
@@ -438,7 +430,7 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
     } else{
         if (idOfTable== 'stationTable') {
             cell = row.insertCell(content.length);
-            cell.innerHTML = checkBoxDescription;
+            cell.innerHTML = addationalDescription;
             cell = row.insertCell(content.length + 1);
             cell.innerHTML = buttonDescription;
             cell = row.insertCell(content.length + 2);
@@ -449,7 +441,7 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
             cell = row.insertCell(content.length + 1);
             cell.innerHTML = buttonDescription2;
             cell = row.insertCell(content.length + 2);
-            cell.innerHTML = checkBoxDescription[0]+checkBoxDescription[1];
+            cell.innerHTML = addationalDescription[0]+addationalDescription[1];
         }
     }
 }
@@ -574,13 +566,13 @@ function editPin(loc,index,tableId,alt,name){
 // visuals functions
 
 function restoreVisuals(){
-    document.getElementById('blocker').style.display='none';
-    document.getElementById('stopButton').style.display='none';
+    hideDiv('blocker');
+    hideDiv('stopButton');
 }
 
 function hideVisuals(){
-    document.getElementById('blocker').style.display='block';
-    document.getElementById('stopButton').style.display='block';
+    showDiv('blocker');
+    showDiv('stopButton');
 }
 
 function hideDiv(divId) {

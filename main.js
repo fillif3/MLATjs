@@ -204,8 +204,8 @@ function createWindow (isNotMain,name) {
                 win.webContents.send('action-update-label', arg);
             });
             winSecurity.setMenu(null);
-            winSecurity.webContents.on("before-input-event", (event, input) => {
-                process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0; // For debuging, delete later
+            winSecurity.webContents.on("before-input-event", (event, input) => { //event for clicking a key on the keyboard
+                //process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0; // For debuging, delete later
                 if (passFlag) if (input.type=='keyDown') {
                     //winSecurity.webContents.openDevTools()
                     if (input.key=='Enter'){
@@ -213,8 +213,7 @@ function createWindow (isNotMain,name) {
                         let helper = pass.slice(pass.length-44);
                         axios.get( // Check if key is fine on the yubico website
                             'https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
-                            let statusArray = resp.data.split('\r\n')
-                            if (statusArray[statusArray.length-3]==='status=OK'){ // Status is fine
+                            if (resp.data.indexOf('status=OK')!=-1){ // Check if status of key is fine
                                 axios.post('http://serwer1717148.home.pl/licenses/key_checker.php', { //Check if key is our.
                                     password: helper
                                 })
@@ -237,8 +236,7 @@ function createWindow (isNotMain,name) {
                                 winSecurity.webContents.send("fromMain", ['wrongKey','You used the wrong key.']);
                             }
 
-                        })
-                            .catch(error => {
+                        }).catch(error => {
                                 console.log(error);
                                 winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to YubiCloud']);
                             })
@@ -254,9 +252,10 @@ function createWindow (isNotMain,name) {
         }
     }
 }
+
 app.whenReady().then(createWindow)
 ipcMain.on("toMain", (event, args) => { //Channel for communication with renderer processes. First argument choose what kind of acation is made
-    if (args[0]=='load') {
+    if (args[0]=='load') { // Load state
         fs.readFile(args[1], 'utf8', (err, data) => {
             if (err!=null) {
                 win.webContents.send("fromMain", ['error']);
@@ -264,44 +263,29 @@ ipcMain.on("toMain", (event, args) => { //Channel for communication with rendere
             }
             win.webContents.send("fromMain", ['load',data]);
         });
-    } else if (args[0]=='save'){
+    } else if (args[0]=='save'){ //Save state
         fs.writeFile(args[1],args[2], (err) => {
            if (err!=null) {
                win.webContents.send("fromMain", ['error']);
                return null;
            }
         });
-    } else if (args[0]=='check'){
-        fs.readdir('saves/', (err, files) => {
-            if (err!=null){
-                win.webContents.send("fromMain", ['error']);
-                return null;
-            }
-            win.webContents.send("fromMain", ['check',files]);
-        });
-    } else if (args[0]=='delete'){
-        try {
-            fs.unlinkSync(args[1])
-            //file removed
-        } catch(err) {
-            win.webContents.send("fromMain", ['error']);
-        }
-    } else if (args[0]=='exit'){
+    } else if (args[0]=='exit'){ // Close app
         app.quit()
-    } else if (args[0]=='VDOP'){
+    } else if (args[0]=='VDOP'){ // Compute VDOP
         let currentLatitude= args[2].get('min_latitude');
         stopFlag=false;
         computeVDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
 
-    } else if  (args[0]=='Stop'){
+    } else if  (args[0]=='Stop'){ // Stop computing VDOP
         stopFlag=true;
-    } else if  (args[0]=='clearSavePath'){
+    } else if  (args[0]=='clearSavePath'){ // Clear typical savePath
         savePath =null;
-    }else if  (args[0]=='setMenu'){
+    }else if  (args[0]=='setMenu'){ //Set top menu, run once the map is loaded
         win.setMenu(menu);
-    }else if (args[0]== 'firstRun'){
+    }else if (args[0]== 'firstRun'){ //If first run, ask user to save examples
         saveExamples(true);
-    }else if (args[0]== 'checkKey'){
+    }else if (args[0]== 'checkKey'){ // Once up is opened, show security window
         passFlag = true;
         createWindow(true,'security');
     }
@@ -309,11 +293,11 @@ ipcMain.on("toMain", (event, args) => { //Channel for communication with rendere
 });
 
 function saveExamples(checkIfFirstRun){
-    const firstTimeFilePath = path.resolve(app.getPath('userData'), '.first-time-huh');
+    const firstTimeFilePath = path.resolve(app.getPath('userData'), '.first-time-huh'); // Open standard path
     try {
-        if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx'));
+        if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx')); // IF we want to check if this app was already runned, we check if this file exist. If it exist, app will be unable to overwrite it and move to catch
         dialog.showOpenDialog({
-            title: 'It is the    first run of this application. Do you want to save examples to chekc what can be done?',
+            title: 'It is the first run of this application. Do you want to save examples to chekc what can be done?',
             defaultPath: desktopDir,
             buttonLabel: 'Save example',
             properties: ['openDirectory']
@@ -333,12 +317,12 @@ function saveExamples(checkIfFirstRun){
     }
 }
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', () => { //If all windows closed, close app
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-app.on('activate', () => {
+app.on('activate', () => { //If app is activated, create standard window
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow(true,'helper')
   }
@@ -348,18 +332,18 @@ app.on('activate', () => {
 
 function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
     let currentLongitude= edges.get('min_longitude');
-    let locataionArrayArray = [];
-    let VDOPArray=[]
-    while (currentLongitude < edges.get('max_longitude')){
+    let locataionArrayArray = []; // Array of array of locations. Each array contains information of one pixel
+    let VDOPArray=[] //Array which contains bvalues of VDOP for locationas
+    while (currentLongitude < edges.get('max_longitude')){ //Iterate until all longs are saved
         if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
-            var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);
-            var VDOP = computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
+            var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);// set information about pixel
+            var VDOP = computeSingleVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
             locataionArrayArray.push(locationArray);
             VDOPArray.push(VDOP);
         }
         currentLongitude += longitudePrecision;
     }
-    win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]);
+    win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]); //Send information to renderer process
     currentLatitude += latitudePrecision;
     if (currentLatitude<edges.get('max_latitude')&&(!stopFlag)) setTimeout(function() {
         computeVDOP(stationLocations, edges, altitude, base_station, isCircle, latitudePrecision, longitudePrecision, polygonOfInterest, currentLatitude);
@@ -371,14 +355,14 @@ function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latit
 }
 
 function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfInterest){
-    if (isCircle){
+    if (isCircle){ // If cirlce, distance to center is checked to check if point is inside polygon
         const meter_per_lat = 111320;
         const meter_per_lon = 40075000*Math.cos(3.14*latitude/180)/360;
         let x = (polygonOfInterest.get('lat')-latitude)*meter_per_lat;
         let y = (polygonOfInterest.get('lon')-longitude)*meter_per_lon;
         return polygonOfInterest.get('radius')>Math.sqrt(x**2+y**2);
     }
-    var numberOfIntersections=0;
+    var numberOfIntersections=0;//Checks if point is inside polygon with this algorithm  https://en.wikipedia.org/wiki/Point_in_polygon
     for (var i=1;i<polygonOfInterest.length;++i){
         var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
         var minY = Math.min(polygonOfInterest[i-1].get('lon'),polygonOfInterest[i].get('lon'))
@@ -391,7 +375,7 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
             if (xPoint<latitude) numberOfIntersections++;
         }
     }
-    var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[0].get('lon'))
+    var maxY = Math.max(polygonOfInterest[i-1].get('lon'),polygonOfInterest[0].get('lon')) // Compute once again for first and last vertex
     var minY = Math.min(polygonOfInterest[i-1].get('lon'),polygonOfInterest[0].get('lon'))
     if ((longitude>minY)&&(longitude<maxY)){
 
@@ -404,7 +388,7 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
     return numberOfIntersections%2===1;
 }
 
-function getPixelLocationArray(latitude, longitude, latitudePrecision, longitudePrecision){
+function getPixelLocationArray(latitude, longitude, latitudePrecision, longitudePrecision){ //get vertexes of pixel (rectancle) based on center and side length
     var locationsArray=[]
     locationsArray.push([latitude-0.5*latitudePrecision,longitude-0.5*longitudePrecision]);
     locationsArray.push([latitude+0.5*latitudePrecision,longitude-0.5*longitudePrecision]);
@@ -413,7 +397,7 @@ function getPixelLocationArray(latitude, longitude, latitudePrecision, longitude
     return locationsArray;
 }
 
-function computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){
+function computeSingleVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){ //Changes stations (in lat,lon,h) to anchors (in ENU)
     var position = [0,0,0];
     var anchors=[];
     for (var i=0;i<stationLocations.length;++i){
@@ -424,14 +408,14 @@ function computeColorBasedOnVDOP(currentLatitude, currentLongitude, altitude, ba
 
 function _computeSingleVDOP(anchors,position,base){
     var new_bases;
-    if (base===-1){
+    if (base===-1){ // -1 means that user wants to check value for all possible bases and chow the best one
         new_bases = [];
         for (let i=0;i<anchors.length;i++){
             new_bases.push(i);
         }
     } else {new_bases = [base];}
     var minVDOP = Number.MAX_VALUE;
-    for (let i=0;i<new_bases.length;i++) {
+    for (let i=0;i<new_bases.length;i++) { // Compute VDOP based on equation expained in doc
         var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
         anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
         anchors[0]=helper;
@@ -490,7 +474,7 @@ function _computeJacobian2dot5D(anchors,position){
     return jacobian;
 }
 
-// Geodetic
+// Function for changing coordinates
 
 function _geodetic2enu(lat, lon, h, lat0, lon0, h0) {
     var [x1, y1, z1] = _geodetic2ecef(lat, lon, h);
