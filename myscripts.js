@@ -4,8 +4,8 @@ window.api.receive("fromMain", (data) => {
     else if (data[0]=='clear') restartMap(true);
     else if (data[0]=='error') alert('the operation failed');
     else if (data[0]=='test') alert('test');
-    else if (data[0]=='VDOP') mapModule.createPixelsFromData(data[1],data[2]);
-    else if (data[0]=='VDOPend') restoreVisuals();
+    else if (data[0]=='HDOP') mapModule.createPixelsFromData(data[1],data[2]);
+    else if (data[0]=='HDOPend') restoreVisuals();
     else if (data[0]=='firstRun') {
         window.api.send("toMain", ['save',data[1],getExample(1)]);
         window.api.send("toMain", ['save',data[2],getExample(2)]);
@@ -19,7 +19,7 @@ window.api.receive("fromMain", (data) => {
 function restartMap(askFlag){
 
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
-    mapModule.clearVDOP();
+    mapModule.clearHDOP();
     let table = document.getElementById('stationTable');
     while(table.rows.length>1) deleteRowAndUpdateTable(table.rows[1].cells[0].firstChild,'station')
     table = document.getElementById('vertexTable');
@@ -111,10 +111,10 @@ function loadTables(text){ //Move thorugh entire save. Sends data from save to t
         index++;
         mapModule.setCenter(arrText[index + 1], arrText[index + 2]);
         index += 4;
-        let VDOPPixelsLocations = [];
-        let VDOPValues = [];
-        while (arrText[index] !== 'end') { //Update VDOP pixels on the map
-            document.getElementById('PanelVDOP').style.display = "block";
+        let HDOPPixelsLocations = [];
+        let HDOPValues = [];
+        while (arrText[index] !== 'end') { //Update HDOP pixels on the map
+            document.getElementById('PanelHDOP').style.display = "block";
             let helper = []
             for (let i = 0; i < 4; i++) {
 
@@ -123,11 +123,11 @@ function loadTables(text){ //Move thorugh entire save. Sends data from save to t
 
                 index += 2;
             }
-            VDOPPixelsLocations.push(helper);
-            VDOPValues.push(arrText[index])
+            HDOPPixelsLocations.push(helper);
+            HDOPValues.push(arrText[index])
             index++;
         }
-        mapModule.createPixelsFromData(VDOPPixelsLocations, VDOPValues);
+        mapModule.createPixelsFromData(HDOPPixelsLocations, HDOPValues);
     }
     catch (e){
         window.api.send("toMain", ['clearSavePath']);
@@ -174,16 +174,16 @@ function saveTables(){
     textToSave+= (loc.latitude.toString().slice(0,7)+'\n');
     textToSave+= (loc.longitude.toString().slice(0,7)+'\n');
     textToSave+='end\n';
-    let VDOPPixels= mapModule.getVDOPPixels();
-    let VDOPValues= mapModule.getVDOPValues();
-    for (let i=0;i<VDOPPixels.length;++i){
-        let locs = VDOPPixels[i].getLocations();
+    let HDOPPixels= mapModule.getHDOPPixels();
+    let HDOPValues= mapModule.getHDOPValues();
+    for (let i=0;i<HDOPPixels.length;++i){
+        let locs = HDOPPixels[i].getLocations();
         for (let j=0;j<4;++j){
             let lat = locs[j].latitude.toString().slice(0,7);
             let lon = locs[j].longitude.toString().slice(0,7);
             textToSave+=(lat +'\n'+lon +'\n');
         }
-        textToSave+=(VDOPValues[i].toString().slice(0,7)+'\n');
+        textToSave+=(HDOPValues[i].toString().slice(0,7)+'\n');
     }
     textToSave+='end';
     return textToSave;
@@ -209,7 +209,7 @@ function GetMap2(){
     togglePolygon(checkbox);
     mapModule.setMap(map); // Set refernce to map in map module
     // Setting addational functions and IDs which will be used by map Module
-    mapModule.setOutputId('VDOPInput');
+    mapModule.setOutputId('HDOPInput');
     mapModule.setClearFunction(restoreVisuals);
     mapModule.setBlockFunction(hideVisuals)
     createGradientDiv(); // adding gradient legend (examples of colors which change slowly)
@@ -260,7 +260,7 @@ function createGradientDiv(){ // adding gradient legend (examples of colors whic
 function stopComputation(){
     window.api.send("toMain", ['Stop']);
 }
-function calculateVDOP(){
+function calculateHDOP(){
     let lat = document.getElementById('latitudeResolutionInput').value;
     let lon =document.getElementById('longitudeResolutionInput').value;
     let alt = document.getElementById('altitudeInput').value
@@ -268,12 +268,12 @@ function calculateVDOP(){
         alert('The inputs must be numeric');
         return null;
     }
-    let result= mapModule.calculateVDOP( parseFloat(lat),
+    let result= mapModule.calculateHDOP( parseFloat(lat),
         parseFloat(lon),
         parseFloat(alt),
         document.getElementById('selectStationList').value,
         !document.getElementById('polygonCheckBox').checked,4)
-    if (result!=null) document.getElementById('PanelVDOP').style.display = "block";
+    if (result!=null) document.getElementById('PanelHDOP').style.display = "block";
 }
 
 function addEventToMap(whichTable){ // add event which happens when user click on the map.
@@ -347,7 +347,7 @@ function addNewCircle(e){//if clicked on the map
         var lat = loc.latitude.toString().slice(0,7);
         var lon = loc.longitude.toString().slice(0,7);
         mapModule.deleteHandler('click');
-        document.getElementById('PanelVDOP').style.display = "none";
+        document.getElementById('PanelHDOP').style.display = "none";
     }
     else {//if typed
         var lat = document.getElementById('latInputPopUp').value;
@@ -515,7 +515,7 @@ function editRowAndUpdateTable(cell){
         }
         var loc = new Microsoft.Maps.Location(parseFloat(lat),parseFloat(lon));
         mapModule.addCircle(loc,radius,changeCircleInTable);
-        document.getElementById('PanelVDOP').style.display = "none";
+        document.getElementById('PanelHDOP').style.display = "none";
         return null;
     }
     var index = row.cells[0].innerHTML-1;
@@ -553,7 +553,7 @@ function removeStationFromList(){
 function deletePin(index,tableId){
     if (tableId==="stationTable") mapModule.deleteStation(index);
     if (tableId==="vertexTable") mapModule.deleteVertex(index);
-    if (tableId==="circleOfInterest") {document.getElementById('PanelVDOP').style.display = "none";mapModule.deleteCircle();}
+    if (tableId==="circleOfInterest") {document.getElementById('PanelHDOP').style.display = "none";mapModule.deleteCircle();}
 
 }
 
@@ -608,8 +608,8 @@ function hideMassageWindow(whichDivsHide) {
 
 function getLocalizationMeasurmentError(){
     var t_measurment_error = parseFloat(document.getElementById('stationMeasurmentErrorInput').value);
-    var VDOP = parseFloat(document.getElementById('VDOPInput').value);
-    var localization_error = t_measurment_error*VDOP*0.3;
+    var HDOP = parseFloat(document.getElementById('HDOPInput').value);
+    var localization_error = t_measurment_error*HDOP*0.3;
     var out = document.getElementById('localizationMeasurmentErrorInput');
     out.value = localization_error.toString().slice(0,7);
 }

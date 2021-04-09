@@ -21,14 +21,14 @@ var mapModule = (function() {
     // Polygon variables
     var _vertexArray=[];
     var _vertexPolygon = null;
-    // VDOP varaibales (references)
-    var _VDOPPixels = [];
-    var _VDOPValues = [];
+    // HDOP varaibales (references)
+    var _HDOPPixels = [];
+    var _HDOPValues = [];
     // Circle variables
     var _circleRadius=0;
     var _circlePin=null;
     var _circlePolygon=null;
-    // Variables connected to computing VDOP
+    // Variables connected to computing HDOP
     var _outputId='';
     var _edges=null;
     var _latitudePrecision = 0;
@@ -38,7 +38,7 @@ var mapModule = (function() {
     var _step=0;
     var _clearFunction=null;
     var _blockFunction=null
-    var _endVDOPComputation=false;
+    var _endHDOPComputation=false;
 
     // Setting variables
 
@@ -142,7 +142,7 @@ var mapModule = (function() {
         return jacobian;
     }
 
-    // Computing VDOP
+    // Computing HDOP
     function createPixelsFromData(pixelsLocations,values) {
         for (let i=0;i<pixelsLocations.length;++i){
             try {
@@ -154,26 +154,26 @@ var mapModule = (function() {
                 let color = _getColor(values[i])
                 let pixel = new Microsoft.Maps.Polygon(locs, {strokeThickness: 0, fillColor: color});
                 Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
-                    _showVDOP(e);
+                    _showHDOP(e);
                 });
                 _MAP_REFERENCE.entities.push(pixel);
-                _VDOPPixels.push(pixel);
-                _VDOPValues.push(values[i]);
+                _HDOPPixels.push(pixel);
+                _HDOPValues.push(values[i]);
             }
             catch (e){
             }
         }
     }
 
-    function getVDOPPixels(){
-        return _VDOPPixels;
+    function getHDOPPixels(){
+        return _HDOPPixels;
     }
 
-    function getVDOPValues(){
-        return _VDOPValues;
+    function getHDOPValues(){
+        return _HDOPValues;
     }
 
-    function _computeSingleVDOP(anchors,position,base){
+    function _computeSingleHDOP(anchors,position,base){
         var new_bases;
         if (base===-1){
             new_bases = [];
@@ -181,7 +181,7 @@ var mapModule = (function() {
                 new_bases.push(i);
             }
         } else {new_bases = [base];}
-        var minVDOP = Number.MAX_VALUE;
+        var minHDOP = Number.MAX_VALUE;
         for (let i=0;i<new_bases.length;i++) {
             var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
             anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
@@ -198,24 +198,24 @@ var mapModule = (function() {
                 equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));//np.dot(equation, np.linalg.inv(np.dot(tran_J,J)))
 
                 let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
-                if (out < minVDOP) minVDOP = out;
+                if (out < minHDOP) minHDOP = out;
             }
             catch (e) {
             }
         }
-        return minVDOP;
+        return minHDOP;
     }
 
-    function _computeColorBasedOnVDOP(currentLatitude,currentLongitude,altitude,base_station,newStationArray){
+    function _computeColorBasedOnHDOP(currentLatitude,currentLongitude,altitude,base_station,newStationArray){
         var position = [0,0,0];
         var anchors=[];
         for (var i=0;i<newStationArray.length;++i){
             var loc = newStationArray[i].getLocation();
             anchors.push(_geodetic2enu(loc.latitude,loc.longitude,_stationAltitudeArray[i],currentLatitude,currentLongitude,altitude));
         }
-        var VDOP = _computeSingleVDOP(anchors,position,base_station);
-        _VDOPValues.push(VDOP);
-        return _getColor(VDOP);
+        var HDOP = _computeSingleHDOP(anchors,position,base_station);
+        _HDOPValues.push(HDOP);
+        return _getColor(HDOP);
     }
 
     function _getPolygonOfInterest(isCircle){
@@ -241,10 +241,10 @@ var mapModule = (function() {
         }
     }
 
-    function calculateVDOP(lat_res,lon_res,altitude,base_station,isCircle,timeout){
+    function calculateHDOP(lat_res,lon_res,altitude,base_station,isCircle,timeout){
 
         _startTimeForDebugging=performance.now();
-        _endVDOPComputation=false;
+        _endHDOPComputation=false;
 
         if ((_vertexArray.length<3)&&(!isCircle)) {
             alert('There is no polygon. You need more vertexes');
@@ -265,7 +265,7 @@ var mapModule = (function() {
             return null;
         }
         if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
-        clearVDOP();
+        clearHDOP();
         if (timeout ===4) _step = 30;
         else _step = 5;
         base_station--; //The user's input starts from one but indexing start from 0
@@ -280,7 +280,7 @@ var mapModule = (function() {
         let polygonOfIntrest = _getPolygonOfInterest(isCircle);//TODO
         _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
-        window.api.send("toMain", ['VDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
+        window.api.send("toMain", ['HDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
             _longitudePrecision,polygonOfIntrest]);
         _currentLatitude= _edges.get('min_latitude');
         if (_vertexPolygon!=null) _vertexPolygon.setOptions({visible:false});
@@ -288,28 +288,28 @@ var mapModule = (function() {
         return 0;
     }
 
-    function calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout){
+    function calculateHDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle,timeout){
 
         for (let i=0;i<_step;++i) {
             _currentLongitude= _edges.get('min_longitude');
             while (_currentLongitude < _edges.get('max_longitude')) {
                 if (_checkIfPointInsidePolygon(_currentLatitude, _currentLongitude, isCircle)) {
                     var locationArray = _getPixelLocationArray(_currentLatitude, _currentLongitude, _latitudePrecision, _longitudePrecision);
-                    var color = _computeColorBasedOnVDOP(_currentLatitude, _currentLongitude, altitude, base_station, newStationArray);
+                    var color = _computeColorBasedOnHDOP(_currentLatitude, _currentLongitude, altitude, base_station, newStationArray);
                     var pixel = new Microsoft.Maps.Polygon(locationArray, {strokeThickness: 0, fillColor: color});
                     Microsoft.Maps.Events.addHandler(pixel, "mouseover", function (e) {
-                        _showVDOP(e);
+                        _showHDOP(e);
                     });
                     _MAP_REFERENCE.entities.push(pixel);
-                    _VDOPPixels.push(pixel);
+                    _HDOPPixels.push(pixel);
                 }
                 _currentLongitude += _longitudePrecision;
             }
             _currentLatitude += _latitudePrecision;
         }
-        if ((_currentLatitude<_edges.get('max_latitude'))&&(!_endVDOPComputation)) {
+        if ((_currentLatitude<_edges.get('max_latitude'))&&(!_endHDOPComputation)) {
             setTimeout(function() {
-                calculateVDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle);
+                calculateHDOPWithTimeOUT(newStationArray,altitude,base_station,isCircle);
             }, timeout)
         }
         else{
@@ -320,24 +320,24 @@ var mapModule = (function() {
         }
     }
 
-    function _showVDOP(e){
+    function _showHDOP(e){
         var pixel = e.target;
-        for (var i=0;i<_VDOPPixels.length;++i){
-            if (_VDOPPixels[i]===pixel){
+        for (var i=0;i<_HDOPPixels.length;++i){
+            if (_HDOPPixels[i]===pixel){
                 break;
             }
         }
-        if (_outputId!=='') document.getElementById(_outputId).value = _VDOPValues[i].toString().slice(0,7);
+        if (_outputId!=='') document.getElementById(_outputId).value = _HDOPValues[i].toString().slice(0,7);
         getLocalizationMeasurmentError();
     }
 
-    function clearVDOP(){
+    function clearHDOP(){
 
-        for (var i=0;i<_VDOPPixels.length;++i){
-            _MAP_REFERENCE.entities.remove(_VDOPPixels[i]);
+        for (var i=0;i<_HDOPPixels.length;++i){
+            _MAP_REFERENCE.entities.remove(_HDOPPixels[i]);
         }
-        _VDOPPixels=[];
-        _VDOPValues=[];
+        _HDOPPixels=[];
+        _HDOPValues=[];
     }
 
 
@@ -694,7 +694,7 @@ var mapModule = (function() {
 
 
     function addCircle(loc,radius,func){
-        clearVDOP();
+        clearHDOP();
         var name2 = loc.latitude.toString().slice(0,7) + ', ' + loc.longitude.toString().slice(0,7);
         var pin = new Microsoft.Maps.Pushpin(loc, {
             title: 'circle',draggable:true,icon:'pin.png',subTitle:name2
@@ -717,7 +717,7 @@ var mapModule = (function() {
     }
 
     function deleteCircle(){
-        clearVDOP();
+        clearHDOP();
         _MAP_REFERENCE.entities.remove(_circlePin);
         _circlePin = null
         _MAP_REFERENCE.entities.remove(_circlePolygon);
@@ -758,7 +758,7 @@ var mapModule = (function() {
         deleteVertex:deleteVertex,
         addHandlerMap: addHandlerMap,
         deleteHandler:deleteHandler,
-        calculateVDOP:calculateVDOP,
+        calculateHDOP:calculateHDOP,
         addCircle:addCircle,
         deleteCircle:deleteCircle,
         setOutputId:setOutputId,
@@ -772,10 +772,10 @@ var mapModule = (function() {
         setCenter:setCenter,
         getCenter:getCenter,
         checkIfMapIsSet:checkIfMapIsSet,
-        getVDOPPixels:getVDOPPixels,
-        getVDOPValues:getVDOPValues,
+        getHDOPPixels:getHDOPPixels,
+        getHDOPValues:getHDOPValues,
         createPixelsFromData:createPixelsFromData,
-        clearVDOP:clearVDOP,
+        clearHDOP:clearHDOP,
         swapVertexes:swapVertexes,
     };
 })();

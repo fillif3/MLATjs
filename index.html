@@ -116,11 +116,11 @@
             <div class = "hidden" id="addationalParametersDiv">
                 <div class = "fullWidth">
                     <div class="halfWidthDivLeft">
-                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating VDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Latitude resolution:</label>
+                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating HDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Latitude resolution:</label>
                         <input class="halfWidthDivLeft fullHeight" id = "latitudeResolutionInput"type="text" value="100" maxlength="10" size="10">
                     </div>
                     <div class="halfWidthDivLeft">
-                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating VDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Longitude resolution:</label>
+                        <label class="information" onclick="alert('You can change how many pixels will be displayed after calculating HDOP. The higher value the longer computation time. We advise to not submit values higher than 300 because it can slow down browser. ')" class="halfWidthDivLeft fullHeight information">Longitude resolution:</label>
                         <input class="halfWidthDivLeft fullHeight" id = "longitudeResolutionInput"type="text"  value="100" maxlength="10" size="10">
                     </div>
                     <div style="clear:both;"></div>
@@ -151,7 +151,7 @@
                 </div>
             </div>
             <div id="calculateButton">
-                <button type="button" onclick="calculateVDOP()" class="buttonSkip fullWidth notMargin">Calculate VDOP</button>
+                <button type="button" onclick="calculateHDOP()" class="buttonSkip fullWidth notMargin">Calculate HDOP</button>
             </div>
         </div>
     </div>
@@ -161,12 +161,12 @@
         </div>
      </div>
      <div id="myMap" ></div>
-     <div id = "PanelVDOP">
+     <div id = "PanelHDOP">
          <div>
              <label >Station measurment error (ns):</label>
              <input id = "stationMeasurmentErrorInput" onchange="getLocalizationMeasurmentError()" type="text"  maxlength="10" size="10">
-             <label >VDOP:</label>
-             <input id = "VDOPInput" readonly type="text" onchange="getLocalizationMeasurmentError()" maxlength="10" size="10">
+             <label >HDOP:</label>
+             <input id = "HDOPInput" readonly type="text" onchange="getLocalizationMeasurmentError()" maxlength="10" size="10">
              <label >Localization measurment error (m):</label>
              <input id = "localizationMeasurmentErrorInput" readonly type="text"  maxlength="10" size="10">
          </div>

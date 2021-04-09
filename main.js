@@ -8,7 +8,7 @@ const axios = require('axios')
 
 let pass ='';
 let passFlag=false;
-// Constant for VDOP calculation
+// Constant for HDOP calculation
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
@@ -272,12 +272,12 @@ ipcMain.on("toMain", (event, args) => { //Channel for communication with rendere
         });
     } else if (args[0]=='exit'){ // Close app
         app.quit()
-    } else if (args[0]=='VDOP'){ // Compute VDOP
+    } else if (args[0]=='HDOP'){ // Compute HDOP
         let currentLatitude= args[2].get('min_latitude');
         stopFlag=false;
-        computeVDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
+        computeHDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
 
-    } else if  (args[0]=='Stop'){ // Stop computing VDOP
+    } else if  (args[0]=='Stop'){ // Stop computing HDOP
         stopFlag=true;
     } else if  (args[0]=='clearSavePath'){ // Clear typical savePath
         savePath =null;
@@ -328,29 +328,29 @@ app.on('activate', () => { //If app is activated, create standard window
   }
 })
 
-// Computing VDOP
+// Computing HDOP
 
-function computeVDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
+function computeHDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
     let currentLongitude= edges.get('min_longitude');
     let locataionArrayArray = []; // Array of array of locations. Each array contains information of one pixel
-    let VDOPArray=[] //Array which contains bvalues of VDOP for locationas
+    let HDOPArray=[] //Array which contains bvalues of HDOP for locationas
     while (currentLongitude < edges.get('max_longitude')){ //Iterate until all longs are saved
         if (checkIfPointInsidePolygon(currentLatitude, currentLongitude, isCircle,polygonOfInterest)) {
             var locationArray = getPixelLocationArray(currentLatitude, currentLongitude, latitudePrecision, longitudePrecision);// set information about pixel
-            var VDOP = computeSingleVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
+            var HDOP = computeSingleHDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations);
             locataionArrayArray.push(locationArray);
-            VDOPArray.push(VDOP);
+            HDOPArray.push(HDOP);
         }
         currentLongitude += longitudePrecision;
     }
-    win.webContents.send("fromMain", ['VDOP',locataionArrayArray,VDOPArray]); //Send information to renderer process
+    win.webContents.send("fromMain", ['HDOP',locataionArrayArray,HDOPArray]); //Send information to renderer process
     currentLatitude += latitudePrecision;
     if (currentLatitude<edges.get('max_latitude')&&(!stopFlag)) setTimeout(function() {
-        computeVDOP(stationLocations, edges, altitude, base_station, isCircle, latitudePrecision, longitudePrecision, polygonOfInterest, currentLatitude);
+        computeHDOP(stationLocations, edges, altitude, base_station, isCircle, latitudePrecision, longitudePrecision, polygonOfInterest, currentLatitude);
     },4);
     else {
-        //console.log(Date.now(),'liczeni VDOP');
-        win.webContents.send("fromMain", ['VDOPend']);
+        //console.log(Date.now(),'liczeni HDOP');
+        win.webContents.send("fromMain", ['HDOPend']);
     }
 }
 
@@ -397,16 +397,16 @@ function getPixelLocationArray(latitude, longitude, latitudePrecision, longitude
     return locationsArray;
 }
 
-function computeSingleVDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){ //Changes stations (in lat,lon,h) to anchors (in ENU)
+function computeSingleHDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){ //Changes stations (in lat,lon,h) to anchors (in ENU)
     var position = [0,0,0];
     var anchors=[];
     for (var i=0;i<stationLocations.length;++i){
         anchors.push(_geodetic2enu(stationLocations[i][0],stationLocations[i][1],0,currentLatitude,currentLongitude,altitude));
     }
-    return _computeSingleVDOP(anchors,position,base_station);
+    return _computeSingleHDOP(anchors,position,base_station);
 }
 
-function _computeSingleVDOP(anchors,position,base){
+function _computeSingleHDOP(anchors,position,base){
     var new_bases;
     if (base===-1){ // -1 means that user wants to check value for all possible bases and chow the best one
         new_bases = [];
@@ -414,8 +414,8 @@ function _computeSingleVDOP(anchors,position,base){
             new_bases.push(i);
         }
     } else {new_bases = [base];}
-    var minVDOP = Number.MAX_VALUE;
-    for (let i=0;i<new_bases.length;i++) { // Compute VDOP based on equation expained in doc
+    var minHDOP = Number.MAX_VALUE;
+    for (let i=0;i<new_bases.length;i++) { // Compute HDOP based on equation expained in doc
         var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
         anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
         anchors[0]=helper;
@@ -430,13 +430,13 @@ function _computeSingleVDOP(anchors,position,base){
             equation = math.multiply(equation, Jacobian);
             equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));
             let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
-            if (out < minVDOP) minVDOP = out;
+            if (out < minHDOP) minHDOP = out;
 
         }
         catch (e) {
         }
     }
-    return minVDOP;
+    return minHDOP;
 }
 
 // Algebra
