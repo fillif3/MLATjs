@@ -264,6 +264,8 @@ var mapModule = (function() {
             alert('There are less then 3 active stations. You need at least 3 active stations to compute measurement errors');
             return null;
         }
+        console.log(newStationArray)
+
         if ((lat_res*lon_res)>50000) if (!window.confirm("You typed high resolution. Are you sure? It can take some to finish")) return null;
         clearHDOP();
         if (timeout ===4) _step = 30;
@@ -513,6 +515,7 @@ var mapModule = (function() {
         var pin = _stationArray[index];
         _stationArray.splice(index,1);
         _stationAltitudeArray.splice(index,1);
+        _ifStationActive.splice(index,1);
         _MAP_REFERENCE.entities.remove(pin);
     }
 
