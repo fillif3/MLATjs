@@ -245,7 +245,7 @@ var mapModule = (function() {
 
         _startTimeForDebugging=performance.now();
         _endHDOPComputation=false;
-
+        console.log(lat_res,lon_res,altitude,base_station,isCircle,timeout)
         if ((_vertexArray.length<3)&&(!isCircle)) {
             alert('There is no polygon. You need more vertexes');
             return null;
@@ -254,12 +254,17 @@ var mapModule = (function() {
             alert('There is no circle. You need to choose center of circle');
             return null;
         }
-        var newStationArray = [];
+        let newStationArray = [];
+        console.log(newStationArray)
+        console.log(_ifStationActive)
+        console.log(_stationArray);
+
         if (_ifStationActive!=null){
             for (var i=0;i<_ifStationActive.length;++i){
                 if (_ifStationActive[i]) newStationArray.push(_stationArray[i]);
             }
         } else newStationArray = _stationArray;
+        console.log(newStationArray)
         if (newStationArray.length<3) {
             alert('There are less then 3 active stations. You need at least 3 active stations to compute measurement errors');
             return null;
@@ -279,7 +284,7 @@ var mapModule = (function() {
             let loc = newStationArray[i].getLocation();
             stationLocations.push([loc.latitude,loc.longitude])
         }
-        let polygonOfIntrest = _getPolygonOfInterest(isCircle);//TODO
+        let polygonOfIntrest = _getPolygonOfInterest(isCircle);
         _latitudePrecision = (_edges.get('max_latitude') - _edges.get('min_latitude'))/lat_res;
         _longitudePrecision = (_edges.get('max_longitude') - _edges.get('min_longitude'))/lon_res;
         window.api.send("toMain", ['HDOP',stationLocations,_edges,altitude,base_station,isCircle,_latitudePrecision,
@@ -334,9 +339,10 @@ var mapModule = (function() {
     }
 
     function clearHDOP(){
-
+        console.log(_HDOPPixels.length)
         for (var i=0;i<_HDOPPixels.length;++i){
             _MAP_REFERENCE.entities.remove(_HDOPPixels[i]);
+            if (i%10==0) console.log(10)
         }
         _HDOPPixels=[];
         _HDOPValues=[];

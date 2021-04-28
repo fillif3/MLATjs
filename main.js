@@ -213,9 +213,10 @@ function createWindow (isNotMain,name) {
                         let helper = pass.slice(pass.length-44);
                         axios.get( // Check if key is fine on the yubico website
                             'https://api.yubico.com/wsapi/2.0/verify?otp='+helper+'&id=63231&timeout=8&sl=50&nonce=askjdnkajsndjkasndkjsnad').then(resp => {
-                            if (resp.data.indexOf('status=OK')!=-1){ // Check if status of key is fine
+                            //if (resp.data.indexOf('status=OK')!=-1){ // Check if status of key is fine
+                            if (true) { // for debugging
                                 axios.post('http://serwer1717148.home.pl/licenses/key_checker.php', { //Check if key is our.
-                                    password: helper
+                                    password: 'ccccccvbigrrccccccvbigrrccccccvbigrrccccccvb'//helper
                                 })
                                     .then(res => {
                                         let ifCorrectPass=(res.data===true);
@@ -343,6 +344,8 @@ function computeHDOP(stationLocations,edges,altitude,base_station,isCircle,latit
         }
         currentLongitude += longitudePrecision;
     }
+
+
     win.webContents.send("fromMain", ['HDOP',locataionArrayArray,HDOPArray]); //Send information to renderer process
     currentLatitude += latitudePrecision;
     if (currentLatitude<edges.get('max_latitude')&&(!stopFlag)) setTimeout(function() {
@@ -419,21 +422,39 @@ function _computeSingleHDOP(anchors,position,base){
         var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
         anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
         anchors[0]=helper;
-        var Jacobian = _computeJacobian2dot5D(anchors, position);
-        var Q = _compute_Q(anchors.length - 1);
+        let stringHelper = 'TDOA';
+        if (stringHelper=='TDOA'){
+            var Jacobian = _computeJacobian2dot5DTDOA(anchors, position);
+            var Q = _compute_Q(anchors.length-1);
+        }else if (stringHelper=='TOA'){
+            var Jacobian = _computeJacobian2dot5DTOA(anchors, position);
+            var Q = math.identity(anchors.length)
+        } else if (stringHelper=='TOAQuery'){
+            var Jacobian = _computeJacobian2dot5DResponse(anchors, position);
+            var Q = math.identity(anchors.length)
+        }
+
         try {
             var transposed_Jacobian = math.transpose(Jacobian);
+            //console.log('1')
             var equation = math.multiply(transposed_Jacobian, Jacobian);
+            //console.log('1')
             equation = math.inv(equation);
+            //console.log('1')
             equation = math.multiply(equation, transposed_Jacobian);
+            //console.log('1')
             equation = math.multiply(equation, Q);
+            //console.log('1')
             equation = math.multiply(equation, Jacobian);
+            //console.log('1')
             equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));
+            //console.log('1')
             let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
             if (out < minHDOP) minHDOP = out;
 
         }
         catch (e) {
+            app.quit()
         }
     }
     return minHDOP;
@@ -458,7 +479,34 @@ function _create_array2D(size1,size2){
     return arr;
 }
 
-function _computeJacobian2dot5D(anchors,position){
+function _computeJacobian2dot5DResponse(anchors,position){
+
+    var jacobian = _create_array2D(anchors.length,2);
+    for (var i=0;i<(anchors.length);++i){
+        var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i, [0, 1,2]))[0]));
+        var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
+            math.subset(anchors,math.index(i, [0, 1]))[0]),1/distToCurrent);
+        jacobian[i][0]=gradient[0];
+        jacobian[i][1]=gradient[1];
+    }
+    return jacobian;
+}
+
+function _computeJacobian2dot5DTOA(anchors,position){
+
+    var jacobian = _create_array2D(anchors.length,3);
+    for (var i=0;i<(anchors.length);++i){
+        var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i, [0, 1,2]))[0]));
+        var gradient = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
+            math.subset(anchors,math.index(i, [0, 1]))[0]),1/distToCurrent);
+        jacobian[i][0]=gradient[0];
+        jacobian[i][1]=gradient[1];
+        jacobian[i][2]=1;
+    }
+    return jacobian;
+}
+
+function _computeJacobian2dot5DTDOA(anchors,position){
 
     var jacobian = _create_array2D(anchors.length-1,2);
     var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
