@@ -12,16 +12,16 @@ let passFlag=false;
 const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
-let win;
-let winHelper;
-let winSecurity;
+let win; // mian window
+let winHelper; // Window with help
+let winSecurity; // window for login
 let savePath =null; //Savepath defines an opened file. If user choose save, the opened file is overwritten
 
-const homeDir = app.getPath('home');
+const homeDir = app.getPath('home'); // Directories used to choose starting location for save and load
 const desktopDir = path.resolve(homeDir, 'Desktop');
 
-
-const template = [
+//
+const template = [ // Information about top menu
     {
       label: 'File',
       submenu: [
@@ -131,24 +131,6 @@ const template = [
                 role: 'close'
             }
         ]
-    },
-
-    {
-        role: 'help',
-        submenu: [
-            {
-                label: 'Learn More',
-                click() {
-                    createWindow(true,'helper');
-                }
-            },
-            {
-                label: 'License',
-                click() {
-                    createWindow(true,'helper');
-                }
-            },
-        ]
     }
 ]
 
@@ -157,7 +139,13 @@ Menu.setApplicationMenu(menu)
 
 let stopFlag; //This flag is used to stop current program. It is changed by a renderer process. Once it is set, the main process exit  current process
 
-function createWindow (isNotMain,name) {
+function createWindow (isNotMain,name) { // Function used to create a window
+    /*
+    bool isNotMain
+    string name
+    This function creates window depending on the args. isNotMain was added so when function which adds even is used, event can be first arg (in
+    this case isNotMain is true)
+     */
     if (!isNotMain) { // Create main window
         win = new BrowserWindow({
             width: 1200,
@@ -199,7 +187,7 @@ function createWindow (isNotMain,name) {
                     preload: path.join(__dirname, "preload.js")
                 }
             })
-            winSecurity.loadFile('yubiAnimation.html');
+            winSecurity.loadFile('yubiAnimation.html'); //Load html with animation
             ipcMain.on('request-update-label-in-second-window', (event, arg) => {
                 win.webContents.send('action-update-label', arg);
             });
@@ -216,7 +204,7 @@ function createWindow (isNotMain,name) {
                             //if (resp.data.indexOf('status=OK')!=-1){ // Check if status of key is fine
                             if (true) { // for debugging
                                 axios.post('http://serwer1717148.home.pl/licenses/key_checker.php', { //Check if key is our.
-                                    password: 'ccccccvbigrrccccccvbigrrccccccvbigrrccccccvb'//helper
+                                    password: helper
                                 })
                                     .then(res => {
                                         let ifCorrectPass=(res.data===true);
@@ -254,9 +242,14 @@ function createWindow (isNotMain,name) {
     }
 }
 
-app.whenReady().then(createWindow)
-ipcMain.on("toMain", (event, args) => { //Channel for communication with renderer processes. First argument choose what kind of acation is made
-    if (args[0]=='load') { // Load state
+app.whenReady().then(createWindow) // Create window when app is ready
+ipcMain.on("toMain", (event, args) => {
+    //Channel for communication with renderer processes. First argument choose what kind of action is made, the rest arguments are in function
+    if (args[0]=='load') {
+        /*
+            arg[1] -> string directory
+            This function read data from the file selected by directory and return them to rendered process
+         */
         fs.readFile(args[1], 'utf8', (err, data) => {
             if (err!=null) {
                 win.webContents.send("fromMain", ['error']);
@@ -264,36 +257,81 @@ ipcMain.on("toMain", (event, args) => { //Channel for communication with rendere
             }
             win.webContents.send("fromMain", ['load',data]);
         });
-    } else if (args[0]=='save'){ //Save state
+    } else if (args[0]=='save'){
+        /*
+           arg[1] -> string directory
+           arg[2] -> string data
+           This function gets data and save them in the file
+        */
         fs.writeFile(args[1],args[2], (err) => {
            if (err!=null) {
                win.webContents.send("fromMain", ['error']);
                return null;
            }
         });
-    } else if (args[0]=='exit'){ // Close app
+    } else if (args[0]=='exit'){
+        /*
+            This function close the application
+         */
         app.quit()
-    } else if (args[0]=='HDOP'){ // Compute HDOP
+    } else if (args[0]=='HDOP'){
+        /*
+            arg[1] -> flat[?][3] stationLocations
+           arg[2] -> Map (with keys min_longitude->float and max_longitude) edges
+           arg[3] -> float altitude
+           arg[4] -> int base_station
+           arg[5] -> bool isCircle
+           arg[6] -> float latitudePrecision
+           arg[7] -> float longitudePrecision
+           arg[8] -> type8 polygonOfInterest -> this variable has different type depending on the value of isCircle
+           if isCricle:
+                type8 -> map (with keys 'lon'->float, 'lat'->float and 'radius'->float)
+           otherwise:
+                type8 -> map[] (with keys 'lon'->float and 'lat'->float)
+            This function start recursive asynchronous function which computes values of HDOP and regularly sends them to renderer process
+         */
         let currentLatitude= args[2].get('min_latitude');
         stopFlag=false;
         computeHDOP(args[1],args[2],args[3],args[4],args[5],args[6],args[7],args[8],currentLatitude)
 
-    } else if  (args[0]=='Stop'){ // Stop computing HDOP
+
+    } else if  (args[0]=='Stop'){
+        /*
+            This function is used to stop recursive computeHDOP function.
+         */
         stopFlag=true;
-    } else if  (args[0]=='clearSavePath'){ // Clear typical savePath
+    } else if  (args[0]=='clearSavePath'){
+        /*
+            Clear typical savePath
+         */
         savePath =null;
-    }else if  (args[0]=='setMenu'){ //Set top menu, run once the map is loaded
+    }else if  (args[0]=='setMenu'){
+        /*
+            Set top menu, run once the map is loaded
+         */
         win.setMenu(menu);
-    }else if (args[0]== 'firstRun'){ //If first run, ask user to save examples
+    }else if (args[0]== 'firstRun'){
+        /*
+            If first run, ask user to save examples
+         */
         saveExamples(true);
-    }else if (args[0]== 'checkKey'){ // Once up is opened, show security window
+    }else if (args[0]== 'checkKey'){
+        /*
+            This function shows security window
+         */
         passFlag = true;
         createWindow(true,'security');
     }
 
 });
 
+
 function saveExamples(checkIfFirstRun){
+    /*
+        bool checkIfFirstRun
+        This function ask user to save examples. If checkIfFirstRun is true, the function will firslty check if this is first run of app.
+        If it is not, it does nothing
+     */
     const firstTimeFilePath = path.resolve(app.getPath('userData'), '.first-time-huh'); // Open standard path
     try {
         if (checkIfFirstRun) fs.closeSync(fs.openSync(firstTimeFilePath, 'wx')); // IF we want to check if this app was already runned, we check if this file exist. If it exist, app will be unable to overwrite it and move to catch
@@ -318,7 +356,7 @@ function saveExamples(checkIfFirstRun){
     }
 }
 
-app.on('window-all-closed', () => { //If all windows closed, close app
+app.on('window-all-closed', () => { //If all windows closed, close app (for MAcOs)
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -332,6 +370,22 @@ app.on('activate', () => { //If app is activated, create standard window
 // Computing HDOP
 
 function computeHDOP(stationLocations,edges,altitude,base_station,isCircle,latitudePrecision,longitudePrecision,polygonOfInterest,currentLatitude){
+    /*
+           flat[?][3] stationLocations
+           Map (with keys min_longitude->float and max_longitude) edges
+           float altitude
+           int base_station
+           bool isCircle
+           float latitudePrecision
+           float longitudePrecision
+           type8 polygonOfInterest -> this variable has different type depending on the value of isCircle
+           if isCricle:
+                type8 -> map (with keys 'lon'->float, 'lat'->float and 'radius'->float)
+           otherwise:
+                type8 -> map[] (with keys 'lon'->float and 'lat'->float)
+            This function is recursive asynchronous function which computes values of HDOP and regularly sends them to renderer process.
+            If it is last instance, it also sends that process is finished
+     */
     let currentLongitude= edges.get('min_longitude');
     let locataionArrayArray = []; // Array of array of locations. Each array contains information of one pixel
     let HDOPArray=[] //Array which contains bvalues of HDOP for locationas
@@ -358,6 +412,18 @@ function computeHDOP(stationLocations,edges,altitude,base_station,isCircle,latit
 }
 
 function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfInterest){
+    /*
+        float latitude,
+        float longitude,
+        bool isCircle
+        type4 polygonOfInterest,
+        if isCricle:
+                type8 -> map (with keys 'lon'->float, 'lat'->float and 'radius'->float)
+           otherwise:
+                type8 -> map[] (with keys 'lon'->float and 'lat'->float)
+         return bool
+         This function check if place is inside polygon of polygonOfInterest
+     */
     if (isCircle){ // If cirlce, distance to center is checked to check if point is inside polygon
         const meter_per_lat = 111320;
         const meter_per_lon = 40075000*Math.cos(3.14*latitude/180)/360;
@@ -391,7 +457,15 @@ function checkIfPointInsidePolygon(latitude, longitude, isCircle,polygonOfIntere
     return numberOfIntersections%2===1;
 }
 
-function getPixelLocationArray(latitude, longitude, latitudePrecision, longitudePrecision){ //get vertexes of pixel (rectancle) based on center and side length
+function getPixelLocationArray(latitude, longitude, latitudePrecision, longitudePrecision){
+    /*
+        float latitude,
+        float longitude,
+        float latitudePrecision,
+        float longitudePrecision,
+        return float[4]
+        //This function return vertexes of pixel based on its center(latitude and longitude) and precision
+     */
     var locationsArray=[]
     locationsArray.push([latitude-0.5*latitudePrecision,longitude-0.5*longitudePrecision]);
     locationsArray.push([latitude+0.5*latitudePrecision,longitude-0.5*longitudePrecision]);
@@ -400,7 +474,15 @@ function getPixelLocationArray(latitude, longitude, latitudePrecision, longitude
     return locationsArray;
 }
 
-function computeSingleHDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){ //Changes stations (in lat,lon,h) to anchors (in ENU)
+function computeSingleHDOP(currentLatitude, currentLongitude, altitude, base_station, stationLocations){
+    /*
+        float currentLatitude,
+        float currentLongitude,
+        float altitude,
+        int base_station,
+        float[?][i] stationLocations
+        This function computes a HDOP for chosen place, and chosen stations
+     */
     var position = [0,0,0];
     var anchors=[];
     for (var i=0;i<stationLocations.length;++i){
@@ -436,19 +518,12 @@ function _computeSingleHDOP(anchors,position,base){
 
         try {
             var transposed_Jacobian = math.transpose(Jacobian);
-            //console.log('1')
             var equation = math.multiply(transposed_Jacobian, Jacobian);
-            //console.log('1')
             equation = math.inv(equation);
-            //console.log('1')
             equation = math.multiply(equation, transposed_Jacobian);
-            //console.log('1')
             equation = math.multiply(equation, Q);
-            //console.log('1')
             equation = math.multiply(equation, Jacobian);
-            //console.log('1')
             equation = math.multiply(equation, math.inv(math.multiply(transposed_Jacobian, Jacobian)));
-            //console.log('1')
             let out = Math.sqrt(equation._data[0][0] + equation._data[1][1]);
             if (out < minHDOP) minHDOP = out;
 
