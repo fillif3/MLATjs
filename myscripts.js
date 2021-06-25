@@ -20,8 +20,10 @@ window.api.receive("fromMain", (data) => {
 
 //Saving and loading
 
+
+
 function restartMap(askFlag){
-    // This function is used to restart map (is usally called when 'new' is clicked in the top menu. If askFlag is
+    // This function is used to restart map (is usually called when 'new' is clicked in the top menu. If askFlag is
     // true, user will be asked if they are usre.
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     mapModule.clearHDOP();
@@ -33,6 +35,19 @@ function restartMap(askFlag){
     while(table.rows.length>2) deleteRowAndUpdateTable(table.rows[2].cells[0].firstChild,'circle')
 
 }
+
+/*
+    The save file (txt) structure:
+    - Values are separated with new line
+    - Types of array of values are separated with 'end' line
+    - First type of array of values has information about all stations [lat,lon,alt,name,checked]
+    - Second  type of array of values has information about all vertexes [lat,lon]
+    - 3rd type of  array of values has information about circle [lat,lon,alt]
+    - 4th type of array of values has information about addational parameters [lat Resolution ,lon Resolution,alt,
+    selected station index,ifComplexPolygon]
+    - 5th type of array of values has information about center of map [lat,lon]
+    - 6th type of array  of values has information about pixels [4*[lat,lon] for each vertex and HDOP value]
+*/
 
 function loadTables(text){ //Move thorugh entire save. Sends data from save to tables and map module
     restartMap(false);
