@@ -804,10 +804,8 @@ function openFile(){
             if (!file.canceled) {
                 // Updating the GLOBAL filepath variable
                 // to user-selected file.
-                //win.webContents.send("fromMain", ['load',file.filePaths[0].toString()]);
                 fs.readFile(file.filePaths[0], 'utf8', (err, data) => {
-                    // Do something with file contents
-                    //for (let i=0;i<3;++i) data[i]+=data[i];
+
                     // Send result back to renderer process
                     if (err!=null) {
                         win.webContents.send("fromMain", ['error']);

@@ -1,4 +1,8 @@
 window.api.receive("fromMain", (data) => {
+    /*
+        This function is used for communication with the main process. The first arg in the array is used to determie
+        which methdo should be called, the rest are arguments
+     */
     if (data[0]=='load') loadTables(data[1]);
     else if (data[0]=='save') window.api.send("toMain", ['save',data[1],saveTables()]);
     else if (data[0]=='clear') restartMap(true);
@@ -17,7 +21,8 @@ window.api.receive("fromMain", (data) => {
 //Saving and loading
 
 function restartMap(askFlag){
-
+    // This function is used to restart map (is usally called when 'new' is clicked in the top menu. If askFlag is
+    // true, user will be asked if they are usre.
     if (askFlag) if (!confirm('Do you want to clear the map and tables? Unsaved progress will be lost.')) return null;
     mapModule.clearHDOP();
     let table = document.getElementById('stationTable');
@@ -197,6 +202,7 @@ function GetMap() // DO NOT DELETE, IT IS USED BY BING MAP API
 }
 
 function GetMap2(){
+    // This function is used to create a BingMap
     window.api.send("toMain", ['setMenu']); // Send information to main process that it renderer wants a top menu
     try {
         var map = new Microsoft.Maps.Map('#myMap') //Loads bing map
@@ -216,7 +222,7 @@ function GetMap2(){
     window.api.send("toMain", ['firstRun']); // check if first run
 }
 
-function checkConnection() //Load on load, it checks connection by checking if map is loaded.
+function checkConnection() //it checks connection by checking if map is loaded.
 {
     if (!mapModule.checkIfMapIsSet()) {
         alert('There was a problem with connection. Try again later.')
@@ -258,9 +264,12 @@ function createGradientDiv(){ // adding gradient legend (examples of colors whic
 // button function
 
 function stopComputation(){
+    // This function is used to stop calculating HDOP by main process
     window.api.send("toMain", ['Stop']);
 }
 function calculateHDOP(){
+    // This function is called when user wants to compute HDOP. IF the inputs are fine, it will sne da request to
+    // main process to do so and show panel
     let lat = document.getElementById('latitudeResolutionInput').value;
     let lon =document.getElementById('longitudeResolutionInput').value;
     let alt = document.getElementById('altitudeInput').value
@@ -283,6 +292,8 @@ function addEventToMap(whichTable){ // add event which happens when user click o
 }
 
 function addNewVertex(e){
+    // This function is used as event or when vertex is adde by form. When user clicks on a Bing map, it adds new vertex based on the inputs from GUI
+    // It also adds new row to vertex table
     if (e != null) { //if clicked on the map
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
@@ -313,7 +324,7 @@ function addNewVertex(e){
     updateOrderNumberOfTable("vertexTable",1)
 }
 
-function moveVertexLeft(cell){ //change order number of vertex
+function moveVertexLeft(cell){ //swap order number of polygon vertex with previous vertex
     var row = cell.parentNode.parentNode,
         sibling = row.previousElementSibling,
         parent = row.parentNode;
@@ -323,7 +334,7 @@ function moveVertexLeft(cell){ //change order number of vertex
     updateOrderNumberOfTable("vertexTable",1)
 }
 
-function moveVertexRight(cell){ //change order number of vertex
+function moveVertexRight(cell){ //swap order number of polygon vertex with next vertex
     var row = cell.parentNode.parentNode,
         sibling = row.nextSibling,
         parent = row.parentNode;
@@ -340,8 +351,10 @@ function updateOrderNumberOfTable(tableId,offset){ //change order value of table
     }
 }
 
-function addNewCircle(e){//if clicked on the map
-    if (e != null) {
+function addNewCircle(e){
+    // This function is used as event or when position of cricle is typed. When user clicks on a Bing map, it adds new circle based on the inputs from GUI
+    // It also resets circle table
+    if (e != null) {//if clicked on the map
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
         var lat = loc.latitude.toString().slice(0,7);
@@ -367,8 +380,10 @@ function addNewCircle(e){//if clicked on the map
     if (newRow>2) table.rows[3].parentNode.removeChild(table.rows[2]);
 }
 
-function addNewStation(e){//if clicked on the map
-    if (e != null) {
+function addNewStation(e){
+    // This function is used as event or when position of new station is typed. When user clicks on a Bing map, it adds new circle based on the inputs from GUI
+    // It also resets circle table
+    if (e != null) {//if clicked on the map
         var point = new Microsoft.Maps.Point(e.getX(), e.getY());
         var loc = e.target.tryPixelToLocation(point);
         var lat = loc.latitude.toString().slice(0,7);
@@ -406,13 +421,25 @@ function changeStateofStation(checker){ //If user deactived/activated station
     var row = checker.parentNode.parentNode;
     var index = row.cells[0].innerHTML-1;
     mapModule.changeStateOfStation(index,state);
-    if (state) addStationToList(); //remove station from list of stations based in which user
+    if (state) addStationToList(); //remove station from comboBox with stations
     else removeStationFromList();
 }
 
 // table support functions
 
-function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonDescription2,addationalDescription) {
+function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescriptionEdit,buttonDescriptionDelete,addationalDescription) {
+    /*
+        string idOfTable
+        int indexOfRow
+        string[?] content
+        string buttonDescriptionEdit
+        string buttonDescriptionDelete
+        string addationalDescription
+        This function adds new row for a chosen table. The content has ifnromation what needs to be added to each row.
+        buttonDescriptionEdit and buttonDescriptionDelete has html code of buttons which are going to be create in the table.
+        Some tables needs addational special inputs which are decribed in addationalDescription
+
+     */
     var table = document.getElementById(idOfTable);
     var row = table.insertRow(indexOfRow);
     var cell;
@@ -424,22 +451,22 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
     }
     if (addationalDescription==null) {
         cell = row.insertCell(content.length);
-        cell.innerHTML = buttonDescription;
+        cell.innerHTML = buttonDescriptionEdit;
         cell = row.insertCell(content.length + 1);
-        cell.innerHTML = buttonDescription2;
+        cell.innerHTML = buttonDescriptionDelete;
     } else{
         if (idOfTable== 'stationTable') {
             cell = row.insertCell(content.length);
             cell.innerHTML = addationalDescription;
             cell = row.insertCell(content.length + 1);
-            cell.innerHTML = buttonDescription;
+            cell.innerHTML = buttonDescriptionEdit;
             cell = row.insertCell(content.length + 2);
-            cell.innerHTML = buttonDescription2;
+            cell.innerHTML = buttonDescriptionDelete;
         } else if (idOfTable== 'vertexTable'){
             cell = row.insertCell(content.length);
-            cell.innerHTML = buttonDescription;
+            cell.innerHTML = buttonDescriptionEdit;
             cell = row.insertCell(content.length + 1);
-            cell.innerHTML = buttonDescription2;
+            cell.innerHTML = buttonDescriptionDelete;
             cell = row.insertCell(content.length + 2);
             cell.innerHTML = addationalDescription[0]+addationalDescription[1];
         }
@@ -447,6 +474,7 @@ function addNewRowToTable(idOfTable,indexOfRow,content,buttonDescription,buttonD
 }
 
 function changeVertexInTable(e){
+    // Event function which is called when position of vertex is changed. It updates table
     var pin = e.target;
     var loc = pin.getLocation();
     var index = mapModule.getIndexOfVertex(pin);
@@ -457,6 +485,7 @@ function changeVertexInTable(e){
 }
 
 function changeStationInTable(e){
+    // Event function which is called when position of station is changed. It updates table
     var pin = e.target;
     var loc = pin.getLocation();
     var index = mapModule.getIndexOfStation(pin);
@@ -467,6 +496,7 @@ function changeStationInTable(e){
 }
 
 function changeCircleInTable(e){
+    // Event function which is called when position of circle is changed. It updates table
     var pin = e.target;
     var loc = pin.getLocation();
     var table = document.getElementById("circleOfInterest");
@@ -475,7 +505,9 @@ function changeCircleInTable(e){
     row.cells[1].innerHTML = loc.longitude.toString().slice(0,7);
 }
 
-function deleteRowAndUpdateTable(cell,where){
+function deleteRowAndUpdateTable(cell,tableName){
+    // This function is used to delete row from table
+    // if tableName (string) is station, it deletes station from combobox also
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
     var table = document.getElementById(tableId);
     var row = cell.parentNode.parentNode
@@ -499,10 +531,11 @@ function deleteRowAndUpdateTable(cell,where){
     }
 
     if (flag) deletePin(numberOfRows-1,tableId);
-    if (where==='station') if (row.cells[5].firstChild.checked) removeStationFromList();
+    if (tableName==='station') if (row.cells[5].firstChild.checked) removeStationFromList();
 }
 
 function editRowAndUpdateTable(cell){
+    // This function is used when row is edited, it updates table and map
     var tableId = cell.parentNode.parentNode.parentNode.parentNode.id
     var row = cell.parentNode.parentNode;
     if (tableId==="circleOfInterest"){
@@ -535,6 +568,7 @@ function editRowAndUpdateTable(cell){
 // List support functions
 
 function addStationToList(){
+    // This function adds new station to combobox
     var list= document.getElementById("selectStationList");
     var opt = document.createElement('option');
     opt.value = list.length;
@@ -544,6 +578,7 @@ function addStationToList(){
 }
 
 function removeStationFromList(){
+    // This function removes station to combobox
     var list= document.getElementById("selectStationList");
     list.remove(list.length-1);
 }
@@ -551,6 +586,7 @@ function removeStationFromList(){
 // Pin functions
 
 function deletePin(index,tableId){
+    // This function deletes pushpin from map
     if (tableId==="stationTable") mapModule.deleteStation(index);
     if (tableId==="vertexTable") mapModule.deleteVertex(index);
     if (tableId==="circleOfInterest") {document.getElementById('PanelHDOP').style.display = "none";mapModule.deleteCircle();}
@@ -558,6 +594,7 @@ function deletePin(index,tableId){
 }
 
 function editPin(loc,index,tableId,alt,name){
+    // This function edits pushpin's position from map
     if (tableId==="stationTable") mapModule.EditStation(loc,parseFloat(alt),index,name,changeStationInTable);
     if (tableId==="vertexTable") mapModule.EditVertex(loc,index,changeVertexInTable);
 
@@ -566,24 +603,34 @@ function editPin(loc,index,tableId,alt,name){
 // visuals functions
 
 function restoreVisuals(){
+    // This function restores visuals after computing HDOP
     hideDiv('blocker');
     hideDiv('stopButton');
 }
 
 function hideVisuals(){
+    // This function hides visuals during computing HDOP
     showDiv('blocker');
     showDiv('stopButton');
 }
 
 function hideDiv(divId) {
+    // this function hides div based on id (string)
     document.getElementById(divId).style.display = "none";
 }
 
 function showDiv(divId) {
+    // this function shows div based on id (string)
     document.getElementById(divId).style.display = "block";
 }
 
 function showMassageWindow(whichControlsShow,whichButtonShow) {
+    /*
+        string whichControlsShow ->depending on this string controls to type inputs are created
+        string whichButtonShow ->depending on this string function decides which input should show up
+        This function shows window when user can type location of new pushpin
+     */
+
     if (whichButtonShow === "Vertex") showDiv("addVertexButton");
     else hideDiv("addVertexButton");
     if (whichButtonShow === "Station") showDiv("addStationButton");
@@ -599,7 +646,7 @@ function showMassageWindow(whichControlsShow,whichButtonShow) {
 }
 
 function hideMassageWindow(whichDivsHide) {
-
+    // This function shows window when user can type location of new pushpin
     if (whichDivsHide.includes("lat")) hideDiv("latInputPopUpDiv");
     if (whichDivsHide.includes("long")) hideDiv("longInputPopUpDiv");
     if (whichDivsHide.includes("alt")) hideDiv("altInputPopUpDiv");
@@ -607,6 +654,7 @@ function hideMassageWindow(whichDivsHide) {
 }
 
 function getLocalizationMeasurmentError(){
+    // This function is used to compute and show measurement error based on HDOP
     var t_measurment_error = parseFloat(document.getElementById('stationMeasurmentErrorInput').value);
     var HDOP = parseFloat(document.getElementById('HDOPInput').value);
     var localization_error = t_measurment_error*HDOP*0.3;
@@ -615,12 +663,15 @@ function getLocalizationMeasurmentError(){
 }
 
 function toggle(divId,button){
+    // This function hides/show chosen div based in divID (string) and change button name (adds hide or show at the end of it)
     if (button.innerHTML.slice(button.innerHTML.length-4,button.innerHTML.length)==='hide') button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'show';
     else button.innerHTML = button.innerHTML.slice(0,button.innerHTML.length-4)+'hide';
     $('#'+divId).slideToggle("slow");
 }
 
 function togglePolygon(checkBox){
+    // If checkBox checked, the map and table hide circle on interest and show polygon of interest
+    // oterwise, the map and table show circle on interest and hide polygon of interest
     if (checkBox.checked){
         document.getElementById("smartPlacingVertexesCheckBoxDiv").style.display='block';
         var button = document.getElementById("polygonShowingTableButton");
@@ -644,6 +695,7 @@ function togglePolygon(checkBox){
 // math functions
 
 function doesArrayContainOnlyNumbers(arr){
+    // This function checks if all elements of array are unbmers, return bool
     for (var i=0;i<arr.length;++i) if (isNaN(arr[i])) return false;
     return true;
 }
