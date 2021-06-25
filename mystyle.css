@@ -15,7 +15,7 @@ body, html {
   display: none;
 }
 
-#stopButton {
+#stopButton { /* This is style for a big red button*/
   opacity: 1;
   position: fixed;
   bottom: 0;
@@ -72,7 +72,7 @@ body, html {
   max-height: 100vh;
 }
 
-#myMap {
+#myMap { /* style for Bing map*/
   position:relative;
 }
 
@@ -111,8 +111,7 @@ body, html {
 
 }
 
-
-.notMargin{
+.notMargin{ /*not maring has always with 100%*/
   margin: 0;
   !important width: 100%;
 }
