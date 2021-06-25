@@ -1,3 +1,5 @@
+// This file is used for save communitation between main and renderrer process
+
 const {
     contextBridge,
     ipcRenderer
