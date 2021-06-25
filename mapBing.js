@@ -1,6 +1,6 @@
-
-
-
+/*
+    This module is used to contol map Bing map
+ */
 var mapModule = (function() {
     'use strict';
 

@@ -1,3 +1,8 @@
+/*
+    This file is used only to compute colors (values in hex and gradients] based on the int RGB values. The most
+    important function here is generateColor
+*/
+
 function hex (c) {
     var s = "0123456789abcdef";
     var i = parseInt (c);

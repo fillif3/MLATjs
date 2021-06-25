@@ -2,29 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script  type='text/javascript' src="jquery-1.4.3.min.js"></script>
+    <script  type='text/javascript' src="jquery-1.4.3.min.js"></script><!--jQuery library-->
     <script type='text/javascript'
             src='http://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AnZkuesgU6PcC_kMP-WGAVGtBJiFPd-brWkgdVHemDv5DSFwg8zsQbuFwxBbIbtH'
             async defer>
-
-    </script>
-
+    </script> <!--Bing map library-->
+    <!--Math library-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.0/math.js" integrity="sha512-+KihqiIrhYt4/tFb42KiOJ+wr0PM6dVMw9twO1Ju+sZ0OdgurvE/9dy2jAS0Fr0MCVryF2EXxPH9HRXg6CaFgg==" crossorigin="anonymous"></script>
+
+    <!--Our code-->
     <link rel="stylesheet" href="mystyle.css">
     <script type='text/javascript' src="myscripts.js"></script>
     <script type='text/javascript' src="mapBing.js"></script>
     <script type='text/javascript' src="colorGradient.js"></script>
     <script type='text/javascript' src="readExample.js"></script>
 
-    <script src=
-                    "https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js">
-    </script>
+    <!--screenshot library-->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+    <!--yubiKey library-->
     <script src="https://demo.yubico.com/js/u2f-api.js"></script>
 
 </head>
 <body onload="checkConnection()">
+    <!--This button shows during HDOP computation. It is used to stop them-->
     <button id="stopButton" type="button" onclick="stopComputation('lat_long_alt')" >STOP</button>
 
+    <!--Main panel of application-->
     <div id="myPanel" >
         <div id="hideButton" >
             <button type="button" onclick="toggle('controls',this)" class="hideButton">Panel - hide</button>
@@ -34,7 +37,7 @@
                 <button type="button" onclick="toggle('stationsDiv',this)" class="hideButton">Stations information - show</button>
             </div>
             <div id="stationsDiv" class='hidden'>
-                <table id = "stationTable" class = 'fl-table'>
+                <table id = "stationTable" class = 'fl-table'> <!--This table contains information about all stations-->
                     <tbody>
                       <tr>
                         <td class="information" onclick="alert('Station order number')">Nr</td>
@@ -62,7 +65,7 @@
             <div id = "polygonOfInterestHideButton">
                 <button   type="button" id="polygonShowingTableButton" onclick="toggle('polygonOfInterestDiv',this)" class="hideButton">Polygon information - show</button>
             </div>
-            <div class='hidden' id ="polygonOfInterestDiv">
+            <div class='hidden' id ="polygonOfInterestDiv"> <!--This div contains information of vertexes of polygon of interest-->
                 <table id = "vertexTable" class = 'fl-table'>
                     <tbody>
                       <tr>
@@ -87,7 +90,7 @@
             <div id ="circleOfInterestHideDiv">
                 <button type="button" id="circleShowingTableButton" onclick="toggle('circleOfInterestDiv',this)" class="hideButton">Circle of interest - show</button>
             </div>
-            <div class='hidden' id ="circleOfInterestDiv">
+            <div class='hidden' id ="circleOfInterestDiv"> <!--This div contains information of circle of interest-->
                 <table  class = 'fl-table' id = "circleOfInterest">
                     <tbody>
                     <tr>
@@ -160,8 +163,8 @@
          <img src="Aerobits.png">
         </div>
      </div>
-     <div id="myMap" ></div>
-     <div id = "PanelHDOP">
+     <div id="myMap" ></div> <!--This div contains map-->
+     <div id = "PanelHDOP"> <!--This div shows up when HDOP is computed so user can see more detailed information-->
          <div>
              <label >Station measurment error (ns):</label>
              <input id = "stationMeasurmentErrorInput" onchange="getLocalizationMeasurmentError()" type="text"  maxlength="10" size="10">
@@ -177,7 +180,7 @@
 
          </div>
      </div>
-     <dv id="popUp" >
+     <dv id="popUp" > <!--This div shows up when user wants to type station's postion-->
          <div class="bigCenteredText">
              Select parameters
          </div>
@@ -207,7 +210,7 @@
              </div>
          </div>
      </dv>
-    <div id="blocker">
+    <div id="blocker"> <!--This div is used to cover map during compution of HDOP-->
     </div>
  </body>
  </html>

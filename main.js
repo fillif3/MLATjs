@@ -13,7 +13,7 @@ const _semimajor_axis = 6378137.0;
 const _semiminor_axis = 6356752.31424518
 
 let win; // mian window
-let winHelper; // Window with help
+let winHelper; // Window with help file (currently shows licence
 let winSecurity; // window for login
 let savePath =null; //Savepath defines an opened file. If user choose save, the opened file is overwritten
 
@@ -480,18 +480,31 @@ function computeSingleHDOP(currentLatitude, currentLongitude, altitude, base_sta
         float currentLongitude,
         float altitude,
         int base_station,
-        float[?][i] stationLocations
-        This function computes a HDOP for chosen place, and chosen stations
+        float[?][i] stationLocations (in GEO coordinate system)
+        return float
+        This function transfers geo coordinate system to ENU coordinate system, then it uses _computeSingleHDOP to
+        compute value of HDOP
      */
     var position = [0,0,0];
     var anchors=[];
     for (var i=0;i<stationLocations.length;++i){
         anchors.push(_geodetic2enu(stationLocations[i][0],stationLocations[i][1],0,currentLatitude,currentLongitude,altitude));
     }
-    return _computeSingleHDOP(anchors,position,base_station);
+    return _computeSingleHDOP(anchors,position,base_station,'TDOA');
 }
 
-function _computeSingleHDOP(anchors,position,base){
+function _computeSingleHDOP(anchors,position,base,methodHDOP){
+    /*
+        float[?][3] anchors (in ENU)
+        float [3] position (in ENU)
+        int base
+        string TDOA'
+        return float
+        This function computes HDOP value for chosen position for chosen method.
+
+        There are 3 possible methods: for time difference of arrvial (TDOA), for time of arrival with unknown time sending
+        (TOA), and TOA with addational estimation of time (TOAQuery)
+     */
     var new_bases;
     if (base===-1){ // -1 means that user wants to check value for all possible bases and chow the best one
         new_bases = [];
@@ -504,14 +517,13 @@ function _computeSingleHDOP(anchors,position,base){
         var helper = JSON.parse(JSON.stringify(anchors[new_bases[i]]));
         anchors[new_bases[i]]=JSON.parse(JSON.stringify(anchors[0]));
         anchors[0]=helper;
-        let stringHelper = 'TDOA';
-        if (stringHelper=='TDOA'){
+        if (methodHDOP=='TDOA'){
             var Jacobian = _computeJacobian2dot5DTDOA(anchors, position);
             var Q = _compute_Q(anchors.length-1);
-        }else if (stringHelper=='TOA'){
+        }else if (methodHDOP=='TOA'){
             var Jacobian = _computeJacobian2dot5DTOA(anchors, position);
             var Q = math.identity(anchors.length)
-        } else if (stringHelper=='TOAQuery'){
+        } else if (methodHDOP=='TOAQuery'){
             var Jacobian = _computeJacobian2dot5DResponse(anchors, position);
             var Q = math.identity(anchors.length)
         }
@@ -538,10 +550,21 @@ function _computeSingleHDOP(anchors,position,base){
 // Algebra
 
 function _compute_Q(size){
+    /*
+        int size
+        return matrix size x size
+        This function computes a Q matrix which is used to compute HDOP
+     */
     return math.add(math.identity(size),math.ones(size,size));
 }
 
 function _create_array2D(size1,size2){
+    /*
+        int size1
+        int size2
+        return array[size1][size2]
+        This function computes array full of zeros
+     */
     var arr=[];
     for (var i=0;i<size1;++i){
         var arrHelper=[];
@@ -555,7 +578,12 @@ function _create_array2D(size1,size2){
 }
 
 function _computeJacobian2dot5DResponse(anchors,position){
-
+    /*
+        float [?][3] anchors (in ENU)
+        float position [3] (in ENU)
+        return float [?][2]
+        This function computes Jacobian for TOAQuery method with know altitude
+     */
     var jacobian = _create_array2D(anchors.length,2);
     for (var i=0;i<(anchors.length);++i){
         var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i, [0, 1,2]))[0]));
@@ -568,7 +596,12 @@ function _computeJacobian2dot5DResponse(anchors,position){
 }
 
 function _computeJacobian2dot5DTOA(anchors,position){
-
+    /*
+        float [?][3] anchors (in ENU)
+        float position [3] (in ENU)
+        return float [?][2]
+        This function computes Jacobian for TOA method with know altitude
+     */
     var jacobian = _create_array2D(anchors.length,3);
     for (var i=0;i<(anchors.length);++i){
         var distToCurrent = math.norm(math.subtract(position,math.subset(anchors,math.index(i, [0, 1,2]))[0]));
@@ -582,7 +615,12 @@ function _computeJacobian2dot5DTOA(anchors,position){
 }
 
 function _computeJacobian2dot5DTDOA(anchors,position){
-
+    /*
+        float [?][3] anchors (in ENU)
+        float position [3] (in ENU)
+        return float [?][2]
+        This function computes Jacobian for TDOA method with know altitude
+     */
     var jacobian = _create_array2D(anchors.length-1,2);
     var distToReference = math.norm(math.subtract(position,math.subset(anchors,math.index(0, [0, 1,2]))[0]));
     var refence_derievative = math.multiply(math.subtract(math.subset(position,math.index([0, 1])),
@@ -600,6 +638,16 @@ function _computeJacobian2dot5DTDOA(anchors,position){
 // Function for changing coordinates
 
 function _geodetic2enu(lat, lon, h, lat0, lon0, h0) {
+    /*
+        float lat
+        float lon
+        float h
+        float lat0
+        float lon0
+        float h0
+        return float[3]
+        This function computes position in ENU for [lat,lon,h] in respect to [lat0,lon0,h0]
+     */
     var [x1, y1, z1] = _geodetic2ecef(lat, lon, h);
     var [x2, y2, z2] = _geodetic2ecef(lat0, lon0, h0);
     var [east, north, up] = _uvw2enu(x1 - x2, y1 - y2, z1 - z2, lat0, lon0);
@@ -607,6 +655,13 @@ function _geodetic2enu(lat, lon, h, lat0, lon0, h0) {
 }
 
 function _geodetic2ecef(latitude,longitude,alt){
+    /*
+        float latitude
+        float longitude
+        float alt
+        return float[3]
+        This function translates position in GEO to ECEF coordinate system
+     */
     if (Math.abs(latitude)>90) return [null,null,null];
     var latitudeRadians = _degrees_to_radians(latitude);
     var longitudeRadians = _degrees_to_radians(longitude);
@@ -622,6 +677,15 @@ function _geodetic2ecef(latitude,longitude,alt){
 }
 
 function _uvw2enu(u, v, w, lat0, lon0){
+    /*
+        float u
+        float v
+        float w
+        float lat0
+        float lon0
+        return float[3]
+        This function translates position in GEO to UVW coordinate system
+     */
     if (Math.abs(lat0)>90) return [null,null,null];
     lat0 = _degrees_to_radians(lat0);
     lon0 = _degrees_to_radians(lon0);
@@ -634,6 +698,11 @@ function _uvw2enu(u, v, w, lat0, lon0){
 
 function _degrees_to_radians(degrees)
 {
+    /*
+        float degrees
+        return float
+        This function computes value of raiands based on degrees
+     */
     var pi = Math.PI;
     return degrees * (pi/180);
 }
@@ -641,6 +710,11 @@ function _degrees_to_radians(degrees)
 // Colors
 
 function hex (c) {
+    /*
+        int c
+        return string[2]
+        This function return int saved in hex as tring
+     */
     var s = "0123456789abcdef";
     var i = parseInt (c);
     if (i == 0 || isNaN (c))
@@ -649,8 +723,13 @@ function hex (c) {
     return s.charAt ((i - i % 16) / 16) + s.charAt (i % 16);
 }
 
-/* Convert an RGB triplet to a hex string */
+
 function convertToHex (rgb) {
+    /*
+        int rgb
+        return string[2]
+        Convert an RGB triplet to a hex string
+     */
     return hex(rgb[0]) + hex(rgb[1]) + hex(rgb[2]);
 }
 
@@ -747,6 +826,10 @@ function openFile(){
 }
 
 function saveWithPath(){
+    /*
+        This function is used when user click 'save' in the top menu. It saves file to previously used file. If there is no
+        previously saved file, it will work as saveAs
+     */
     if (savePath==null){
         saveAs(true);
     } else{
@@ -755,6 +838,11 @@ function saveWithPath(){
 
 }
 function saveAs(ifChangeSavePath){
+    /*
+        bool ifChangeSavePath
+        This function is used to save a file with path chosen with saveDialog. If flag is true,
+        new path will be saved.
+     */
     dialog.showSaveDialog({
         title: 'Select the File Path to save',
         defaultPath: path.join(__dirname, '../assets/sample.mlat'),
