@@ -210,13 +210,13 @@ function saveTables(){
 }
 // onload
 
-function GetMap() // DO NOT DELETE, IT IS USED BY BING MAP API
+function GetMap2() // DO NOT DELETE, IT IS USED BY BING MAP API
 {
     mapModule.setMap('placeholder'); //It should be reference to Map object. I set placeholder so system knows it will be loaded after key is checked
     window.api.send("toMain", ['checkKey']); // Check key
 }
 
-function GetMap2(){
+function GetMap(){
     // This function is used to create a BingMap
     window.api.send("toMain", ['setMenu']); // Send information to main process that it renderer wants a top menu
     try {

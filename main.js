@@ -164,6 +164,7 @@ function createWindow (isNotMain,name) { // Function used to create a window
         });
         win.setMenu(null);
         win.loadFile('index.html');
+        win.webContents.send("fromMain", ['gotKey']);
         win.on('closed', (e) => {
             app.quit();
         })
@@ -219,7 +220,10 @@ function createWindow (isNotMain,name) { // Function used to create a window
                                         }
                                     })
                                     .catch(error => {
-                                        winSecurity.webContents.send("fromMain", ['wrongKey','There was a problem with the connection to Aerobits\' server']);
+
+                                        passFlag = false;
+                                            win.webContents.send("fromMain", ['gotKey']);
+                                        winSecurity.close();
                                     })
                             } else{
                                 winSecurity.webContents.send("fromMain", ['wrongKey','You used the wrong key.']);
@@ -319,8 +323,8 @@ ipcMain.on("toMain", (event, args) => {
         /*
             This function shows security window
          */
-        passFlag = true;
-        createWindow(true,'security');
+        //passFlag = true;
+        //createWindow(true,'security');
     }
 
 });
